@@ -1,9 +1,104 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
-    <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
-        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    <entity name="ProductCategory" representedClassName="ProductCategory" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" optional="YES" attributeType="String" defaultValueString=""/>
+        <attribute name="icon" optional="YES" attributeType="String" defaultValueString="📦"/>
+        <attribute name="colorHex" optional="YES" attributeType="String" defaultValueString="#007AFF"/>
+        <attribute name="sortOrder" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="averageUnitPrice" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="productCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="isDeleted" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isSystemCategory" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastUpdated" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="productGroups" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ProductGroup" inverseName="category" inverseEntity="ProductGroup"/>
+        <relationship name="productRecords" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ProductRecord" inverseName="category" inverseEntity="ProductRecord"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="ProductGroup" representedClassName="ProductGroup" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="productName" optional="YES" attributeType="String" defaultValueString=""/>
+        <attribute name="normalizedName" optional="YES" attributeType="String" defaultValueString=""/>
+        <attribute name="productType" optional="YES" attributeType="String" defaultValueString=""/>
+        <attribute name="recordCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="averageUnitPrice" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="lowestUnitPrice" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="lowestPriceStoreName" optional="YES" attributeType="String" defaultValueString=""/>
+        <attribute name="lastRecordDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="isDeleted" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="category" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ProductCategory" inverseName="productGroups" inverseEntity="ProductCategory"/>
+        <relationship name="records" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ProductRecord" inverseName="productGroup" inverseEntity="ProductRecord"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="ProductRecord" representedClassName="ProductRecord" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="productName" optional="YES" attributeType="String" defaultValueString=""/>
+        <attribute name="productType" optional="YES" attributeType="String" defaultValueString=""/>
+        <attribute name="originalPrice" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="finalPrice" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="taxIncluded" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="taxRate" optional="YES" attributeType="Decimal" defaultValueString="0.1"/>
+        <attribute name="quantity" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="unitType" optional="YES" attributeType="String" defaultValueString="g"/>
+        <attribute name="unitPrice" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="storeName" optional="YES" attributeType="String" defaultValueString=""/>
+        <attribute name="storeLocation" optional="YES" attributeType="String" defaultValueString=""/>
+        <attribute name="purchaseDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="memo" optional="YES" attributeType="String" defaultValueString=""/>
+        <attribute name="isDeleted" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="category" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ProductCategory" inverseName="productRecords" inverseEntity="ProductCategory"/>
+        <relationship name="productGroup" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ProductGroup" inverseName="records" inverseEntity="ProductGroup"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="ComparisonHistory" representedClassName="ComparisonHistory" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="comparisonType" optional="YES" attributeType="String" defaultValueString="simple"/>
+        <attribute name="comparisonContext" optional="YES" attributeType="String" defaultValueString=""/>
+        <attribute name="productAName" optional="YES" attributeType="String" defaultValueString=""/>
+        <attribute name="productAPrice" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="productAQuantity" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="productAUnitType" optional="YES" attributeType="String" defaultValueString="g"/>
+        <attribute name="productAUnitPrice" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="productBName" optional="YES" attributeType="String" defaultValueString=""/>
+        <attribute name="productBPrice" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="productBQuantity" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="productBUnitType" optional="YES" attributeType="String" defaultValueString="g"/>
+        <attribute name="productBUnitPrice" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="winnerProduct" optional="YES" attributeType="String" defaultValueString="productA"/>
+        <attribute name="priceDifference" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="percentageDifference" optional="YES" attributeType="Decimal" defaultValueString="0"/>
+        <attribute name="userChoice" optional="YES" attributeType="String"/>
+        <attribute name="wasDataSaved" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isDeleted" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <elements>
-        <element name="Item" positionX="-63" positionY="-18" width="128" height="44"/>
+        <element name="ProductCategory" positionX="-63" positionY="-18" width="128" height="209"/>
+        <element name="ComparisonHistory" positionX="403" positionY="-18" width="128" height="329"/>
+        <element name="ProductGroup" positionX="170" positionY="-18" width="128" height="209"/>
+        <element name="ProductRecord" positionX="-63" positionY="227" width="128" height="284"/>
     </elements>
 </model>
