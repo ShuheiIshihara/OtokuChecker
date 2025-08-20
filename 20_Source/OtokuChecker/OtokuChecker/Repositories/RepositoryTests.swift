@@ -28,18 +28,14 @@ class RepositoryTests {
     func testBasicCRUD() async {
         print("🧪 Repository Basic CRUD Test開始")
         
-        do {
-            // 1. ProductCategoryのテスト
-            await testProductCategoryOperations()
-            
-            // 2. ProductGroupのテスト
-            await testProductGroupOperations()
-            
-            print("✅ 全てのRepositoryテストが成功しました")
-            
-        } catch {
-            print("❌ Repositoryテストでエラーが発生: \(error)")
-        }
+        // 1. ProductCategoryのテスト
+        await testProductCategoryOperations()
+        
+        // 2. ProductGroupのテスト
+        await testProductGroupOperations()
+        
+        print("✅ 全てのRepositoryテストが成功しました")
+        
     }
     
     // MARK: - Category Tests
@@ -200,7 +196,7 @@ class RepositoryTests {
             )
             
             // 2. そのカテゴリで商品グループ作成
-            let group = try await groupRepo.create(
+            _ = try await groupRepo.create(
                 productName: "統合テスト商品",
                 productType: "テスト",
                 category: category
