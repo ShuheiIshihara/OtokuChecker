@@ -14,10 +14,16 @@ struct PersistenceController {
     static let preview: PersistenceController = {
         let result = PersistenceController(inMemory: true)
         let viewContext = result.container.viewContext
-        for _ in 0..<10 {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-        }
+        
+        // サンプルカテゴリを作成
+        let sampleCategory = NSEntityDescription.entity(forEntityName: "ProductCategory", in: viewContext)!
+        let category = NSManagedObject(entity: sampleCategory, insertInto: viewContext)
+        category.setValue(UUID(), forKey: "entityID")
+        category.setValue("食料品", forKey: "name")
+        category.setValue("🍎", forKey: "icon")
+        category.setValue(Date(), forKey: "createdAt")
+        category.setValue(Date(), forKey: "updatedAt")
+        
         do {
             try viewContext.save()
         } catch {
