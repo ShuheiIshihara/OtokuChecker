@@ -8,80 +8,26 @@
 import Foundation
 
 class ComparisonService {
-    static let shared = ComparisonService()
     
-    private init() {}
+    private let comparisonEngine: ComparisonEngine
     
-    func compareProducts(_ productA: Product, _ productB: Product) -> ComparisonResult? {
-        // 両商品が有効かチェック
-        guard productA.isValid && productB.isValid else {
-            return nil
-        }
-        
-        // 単位の互換性チェック
-        guard productA.unit.isConvertibleTo(productB.unit) else {
-            return nil
-        }
-        
-        let unitPriceA = productA.unitPrice
-        let unitPriceB = productB.unitPrice
-        
-        // 勝者の決定
-        let winner: ComparisonResult.Winner
-        let priceDifference: Decimal
-        let percentageDifference: Decimal
-        
-        if abs(unitPriceA - unitPriceB) < 0.01 {
-            // 価格差が1円未満の場合は同じとする
-            winner = .tie
-            priceDifference = 0
-            percentageDifference = 0
-        } else if unitPriceA < unitPriceB {
-            // 商品Aがお得
-            winner = .productA
-            priceDifference = unitPriceB - unitPriceA
-            percentageDifference = calculatePercentageDifference(lower: unitPriceA, higher: unitPriceB)
-        } else {
-            // 商品Bがお得
-            winner = .productB
-            priceDifference = unitPriceA - unitPriceB
-            percentageDifference = calculatePercentageDifference(lower: unitPriceB, higher: unitPriceA)
-        }
-        
-        return ComparisonResult(
-            productA: productA,
-            productB: productB,
-            winner: winner,
-            priceDifference: priceDifference,
-            percentageDifference: percentageDifference
-        )
+    init(comparisonEngine: ComparisonEngine = ComparisonEngine()) {
+        self.comparisonEngine = comparisonEngine
     }
     
-    private func calculatePercentageDifference(lower: Decimal, higher: Decimal) -> Decimal {
-        guard higher > 0 else { return 0 }
-        let difference = higher - lower
-        return (difference / higher) * 100
+    // MARK: - Main Comparison Methods
+    
+    func compare(productA: ComparisonProduct, productB: ComparisonProduct) throws -> ExtendedComparisonResult {
+        return try comparisonEngine.compare(productA, productB)
     }
     
-    func validateProductForComparison(_ product: Product) -> [String] {
-        var errors: [String] = []
-        
-        if product.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            errors.append("商品名を入力してください")
-        }
-        
-        if product.price <= 0 {
-            errors.append("価格は0より大きい値を入力してください")
-        }
-        
-        if product.quantity <= 0 {
-            errors.append("容量は0より大きい値を入力してください")
-        }
-        
-        return errors
+    // MARK: - Validation Methods
+    
+    func validateProductForComparison(_ product: ComparisonProduct) -> [String] {
+        return product.validateInput().compactMap { $0.errorDescription }
     }
     
-    func canCompareProducts(_ productA: Product, _ productB: Product) -> (canCompare: Bool, reason: String?) {
+    func canCompareProducts(_ productA: ComparisonProduct, _ productB: ComparisonProduct) -> (canCompare: Bool, reason: String?) {
         let errorsA = validateProductForComparison(productA)
         let errorsB = validateProductForComparison(productB)
         
@@ -98,5 +44,90 @@ class ComparisonService {
         }
         
         return (true, nil)
+    }
+    
+    // MARK: - Legacy Support Methods (for backward compatibility)
+    
+    @available(*, deprecated, message: "Use compare(productA:productB:) instead")
+    func compareProducts(_ productA: Product, _ productB: Product) -> ComparisonResult? {
+        // Convert Product to ComparisonProduct for backward compatibility
+        let comparisonProductA = ComparisonProduct(
+            name: productA.name,
+            price: productA.price,
+            quantity: productA.quantity,
+            unit: productA.unit,
+            taxIncluded: true, // デフォルトで税込
+            taxRate: 0.10 // 10%税率
+        )
+        
+        let comparisonProductB = ComparisonProduct(
+            name: productB.name,
+            price: productB.price,
+            quantity: productB.quantity,
+            unit: productB.unit,
+            taxIncluded: true, // デフォルトで税込
+            taxRate: 0.10 // 10%税率
+        )
+        
+        do {
+            let extendedResult = try compare(productA: comparisonProductA, productB: comparisonProductB)
+            
+            // Convert ExtendedComparisonResult to ComparisonResult
+            let winner: ComparisonResult.Winner
+            switch extendedResult.winner {
+            case .productA:
+                winner = .productA
+            case .productB:
+                winner = .productB
+            case .tie:
+                winner = .tie
+            }
+            
+            return ComparisonResult(
+                productA: productA,
+                productB: productB,
+                winner: winner,
+                priceDifference: extendedResult.comparisonDetails.priceDifference,
+                percentageDifference: extendedResult.comparisonDetails.percentageDifference
+            )
+        } catch {
+            return nil
+        }
+    }
+    
+    @available(*, deprecated, message: "Use validateProductForComparison(_ product: ComparisonProduct) instead")
+    func validateProductForComparison(_ product: Product) -> [String] {
+        let comparisonProduct = ComparisonProduct(
+            name: product.name,
+            price: product.price,
+            quantity: product.quantity,
+            unit: product.unit,
+            taxIncluded: true,
+            taxRate: 0.10
+        )
+        return validateProductForComparison(comparisonProduct)
+    }
+    
+    @available(*, deprecated, message: "Use canCompareProducts(_ productA: ComparisonProduct, _ productB: ComparisonProduct) instead")
+    func canCompareProducts(_ productA: Product, _ productB: Product) -> (canCompare: Bool, reason: String?) {
+        let comparisonProductA = ComparisonProduct(
+            name: productA.name,
+            price: productA.price,
+            quantity: productA.quantity,
+            unit: productA.unit,
+            taxIncluded: true,
+            taxRate: 0.10
+        )
+        
+        let comparisonProductB = ComparisonProduct(
+            name: productB.name,
+            price: productB.price,
+            quantity: productB.quantity,
+            unit: productB.unit,
+            taxIncluded: true,
+            taxRate: 0.10
+        )
+        
+        return canCompareProducts(comparisonProductA, comparisonProductB)
     }
 }

@@ -339,15 +339,313 @@ class MockProductGroup {
     }
 }
 
+// MARK: - Mock Product Record Repository
+
+class MockProductRecordRepository: ProductRecordRepositoryProtocol {
+    
+    private var records: [MockProductRecord] = []
+    private var nextId = 1
+    
+    func create(
+        productName: String,
+        originalPrice: Decimal,
+        quantity: Decimal,
+        unitType: String,
+        storeName: String?,
+        productGroup: ProductGroup?,
+        category: ProductCategory?
+    ) async throws -> ProductRecord {
+        let record = MockProductRecord(
+            id: nextId,
+            productName: productName,
+            originalPrice: originalPrice,
+            quantity: quantity,
+            unitType: unitType,
+            storeName: storeName
+        )
+        nextId += 1
+        records.append(record)
+        return convertToProductRecord(record)
+    }
+    
+    func fetchAll() async throws -> [ProductRecord] {
+        let filteredRecords = records.filter { !$0.deletedFlag }
+        return filteredRecords.map { convertToProductRecord($0) }
+    }
+    
+    func fetchById(_ id: UUID) async throws -> ProductRecord? {
+        guard let mockRecord = records.first(where: { $0.entityID == id && !$0.deletedFlag }) else {
+            return nil
+        }
+        return convertToProductRecord(mockRecord)
+    }
+    
+    func update(_ record: ProductRecord) async throws {
+        if let index = records.firstIndex(where: { $0.entityID == record.entityID }) {
+            records[index].updatedAt = Date()
+        }
+    }
+    
+    func delete(_ record: ProductRecord) async throws {
+        if let index = records.firstIndex(where: { $0.entityID == record.entityID }) {
+            records[index].deletedFlag = true
+        }
+    }
+    
+    func save() async throws {}
+    
+    func fetch() async throws -> [ProductRecord] {
+        return try await fetchAll()
+    }
+    
+    func fetchByProductGroup(_ group: ProductGroup) async throws -> [ProductRecord] {
+        let filteredRecords = records.filter { !$0.deletedFlag }
+        return filteredRecords.map { convertToProductRecord($0) }
+    }
+    
+    func fetchByCategory(_ category: ProductCategory) async throws -> [ProductRecord] {
+        let filteredRecords = records.filter { !$0.deletedFlag }
+        return filteredRecords.map { convertToProductRecord($0) }
+    }
+    
+    func fetchByStoreName(_ storeName: String) async throws -> [ProductRecord] {
+        let filteredRecords = records.filter { 
+            $0.storeName?.localizedCaseInsensitiveContains(storeName) == true && !$0.deletedFlag
+        }
+        return filteredRecords.map { convertToProductRecord($0) }
+    }
+    
+    func fetchByPriceRange(min: Decimal, max: Decimal) async throws -> [ProductRecord] {
+        let filteredRecords = records.filter { 
+            $0.originalPrice >= min && $0.originalPrice <= max && !$0.deletedFlag
+        }
+        return filteredRecords.map { convertToProductRecord($0) }
+    }
+    
+    func fetchByDateRange(startDate: Date, endDate: Date) async throws -> [ProductRecord] {
+        let filteredRecords = records.filter { 
+            $0.createdAt >= startDate && $0.createdAt <= endDate && !$0.deletedFlag
+        }
+        return filteredRecords.map { convertToProductRecord($0) }
+    }
+    
+    func search(keyword: String) async throws -> [ProductRecord] {
+        let filteredRecords = records.filter { 
+            $0.productName.localizedCaseInsensitiveContains(keyword) && !$0.deletedFlag
+        }
+        return filteredRecords.map { convertToProductRecord($0) }
+    }
+    
+    func fetchRecent(limit: Int) async throws -> [ProductRecord] {
+        let filteredRecords = Array(records.filter { !$0.deletedFlag }.prefix(limit))
+        return filteredRecords.map { convertToProductRecord($0) }
+    }
+    
+    func fetchCheapest(limit: Int) async throws -> [ProductRecord] {
+        let sortedRecords = records.filter { !$0.deletedFlag }
+            .sorted { $0.originalPrice < $1.originalPrice }
+        let filteredRecords = Array(sortedRecords.prefix(limit))
+        return filteredRecords.map { convertToProductRecord($0) }
+    }
+    
+    private func convertToProductRecord(_ mockRecord: MockProductRecord) -> ProductRecord {
+        let record = ProductRecord(context: PersistenceController.shared.container.viewContext)
+        record.entityID = mockRecord.entityID
+        record.productName = mockRecord.productName
+        record.originalPrice = NSDecimalNumber(decimal: mockRecord.originalPrice)
+        record.quantity = NSDecimalNumber(decimal: mockRecord.quantity)
+        record.unitType = mockRecord.unitType
+        record.storeName = mockRecord.storeName
+        record.purchaseDate = mockRecord.purchaseDate
+        record.createdAt = mockRecord.createdAt
+        record.updatedAt = mockRecord.updatedAt
+        record.deletedFlag = mockRecord.deletedFlag
+        return record
+    }
+}
+
+// MARK: - Mock Comparison History Repository
+
+class MockComparisonHistoryRepository: ComparisonHistoryRepositoryProtocol {
+    
+    private var histories: [MockComparisonHistory] = []
+    private var nextId = 1
+    
+    func create(
+        comparisonType: String,
+        productAName: String,
+        productAPrice: Decimal,
+        productAQuantity: Decimal,
+        productAUnitType: String,
+        productBName: String,
+        productBPrice: Decimal,
+        productBQuantity: Decimal,
+        productBUnitType: String,
+        winnerProduct: String
+    ) async throws -> ComparisonHistory {
+        let history = MockComparisonHistory(
+            id: nextId,
+            comparisonType: comparisonType,
+            productAName: productAName,
+            productAPrice: productAPrice,
+            productAQuantity: productAQuantity,
+            productAUnitType: productAUnitType,
+            productBName: productBName,
+            productBPrice: productBPrice,
+            productBQuantity: productBQuantity,
+            productBUnitType: productBUnitType,
+            winnerProduct: winnerProduct
+        )
+        nextId += 1
+        histories.append(history)
+        return convertToComparisonHistory(history)
+    }
+    
+    func fetchAll() async throws -> [ComparisonHistory] {
+        return histories.map { convertToComparisonHistory($0) }
+    }
+    
+    func fetchById(_ id: UUID) async throws -> ComparisonHistory? {
+        guard let mockHistory = histories.first(where: { $0.entityID == id }) else {
+            return nil
+        }
+        return convertToComparisonHistory(mockHistory)
+    }
+    
+    func delete(_ history: ComparisonHistory) async throws {
+        if let index = histories.firstIndex(where: { $0.entityID == history.entityID }) {
+            histories.remove(at: index)
+        }
+    }
+    
+    func save() async throws {}
+    
+    func fetch() async throws -> [ComparisonHistory] {
+        return try await fetchAll()
+    }
+    
+    func fetchByType(_ type: String) async throws -> [ComparisonHistory] {
+        let filteredHistories = histories.filter { $0.comparisonType == type }
+        return filteredHistories.map { convertToComparisonHistory($0) }
+    }
+    
+    func fetchRecent(limit: Int) async throws -> [ComparisonHistory] {
+        let filteredHistories = Array(histories.prefix(limit))
+        return filteredHistories.map { convertToComparisonHistory($0) }
+    }
+    
+    func fetchByDateRange(startDate: Date, endDate: Date) async throws -> [ComparisonHistory] {
+        let filteredHistories = histories.filter { 
+            $0.createdAt >= startDate && $0.createdAt <= endDate
+        }
+        return filteredHistories.map { convertToComparisonHistory($0) }
+    }
+    
+    func search(productName: String) async throws -> [ComparisonHistory] {
+        let filteredHistories = histories.filter { 
+            $0.productAName.localizedCaseInsensitiveContains(productName) ||
+            $0.productBName.localizedCaseInsensitiveContains(productName)
+        }
+        return filteredHistories.map { convertToComparisonHistory($0) }
+    }
+    
+    func fetchMostComparedProducts(limit: Int) async throws -> [(productName: String, count: Int)] {
+        // Mock implementation
+        return [("サンプル商品", 5), ("テスト商品", 3)]
+    }
+    
+    func fetchComparisonStats() async throws -> (totalComparisons: Int, averageSavings: Decimal) {
+        return (histories.count, 100.0)
+    }
+    
+    private func convertToComparisonHistory(_ mockHistory: MockComparisonHistory) -> ComparisonHistory {
+        let history = ComparisonHistory(context: PersistenceController.shared.container.viewContext)
+        history.entityID = mockHistory.entityID
+        history.comparisonType = mockHistory.comparisonType
+        history.productAName = mockHistory.productAName
+        history.productAPrice = NSDecimalNumber(decimal: mockHistory.productAPrice)
+        history.productAQuantity = NSDecimalNumber(decimal: mockHistory.productAQuantity)
+        history.productAUnitType = mockHistory.productAUnitType
+        history.productBName = mockHistory.productBName
+        history.productBPrice = NSDecimalNumber(decimal: mockHistory.productBPrice)
+        history.productBQuantity = NSDecimalNumber(decimal: mockHistory.productBQuantity)
+        history.productBUnitType = mockHistory.productBUnitType
+        history.winnerProduct = mockHistory.winnerProduct
+        history.createdAt = mockHistory.createdAt
+        return history
+    }
+}
+
+// MARK: - Additional Mock Models
+
+class MockProductRecord {
+    var entityID: UUID
+    var productName: String
+    var originalPrice: Decimal
+    var quantity: Decimal
+    var unitType: String
+    var storeName: String?
+    var purchaseDate: Date?
+    var createdAt: Date
+    var updatedAt: Date
+    var deletedFlag: Bool = false
+    
+    init(id: Int, productName: String, originalPrice: Decimal, quantity: Decimal, unitType: String, storeName: String?) {
+        self.entityID = UUID()
+        self.productName = productName
+        self.originalPrice = originalPrice
+        self.quantity = quantity
+        self.unitType = unitType
+        self.storeName = storeName
+        self.purchaseDate = Date()
+        self.createdAt = Date()
+        self.updatedAt = Date()
+    }
+}
+
+class MockComparisonHistory {
+    var entityID: UUID
+    var comparisonType: String
+    var productAName: String
+    var productAPrice: Decimal
+    var productAQuantity: Decimal
+    var productAUnitType: String
+    var productBName: String
+    var productBPrice: Decimal
+    var productBQuantity: Decimal
+    var productBUnitType: String
+    var winnerProduct: String
+    var createdAt: Date
+    
+    init(id: Int, comparisonType: String, productAName: String, productAPrice: Decimal, productAQuantity: Decimal, productAUnitType: String, productBName: String, productBPrice: Decimal, productBQuantity: Decimal, productBUnitType: String, winnerProduct: String) {
+        self.entityID = UUID()
+        self.comparisonType = comparisonType
+        self.productAName = productAName
+        self.productAPrice = productAPrice
+        self.productAQuantity = productAQuantity
+        self.productAUnitType = productAUnitType
+        self.productBName = productBName
+        self.productBPrice = productBPrice
+        self.productBQuantity = productBQuantity
+        self.productBUnitType = productBUnitType
+        self.winnerProduct = winnerProduct
+        self.createdAt = Date()
+    }
+}
+
 // MARK: - Repository Container
 
 class MockRepositoryContainer {
     let productCategoryRepository: any ProductCategoryRepositoryProtocol
     let productGroupRepository: any ProductGroupRepositoryProtocol
+    let productRecordRepository: any ProductRecordRepositoryProtocol
+    let comparisonHistoryRepository: any ComparisonHistoryRepositoryProtocol
     
     init() {
         self.productCategoryRepository = MockProductCategoryRepository()
         self.productGroupRepository = MockProductGroupRepository()
+        self.productRecordRepository = MockProductRecordRepository()
+        self.comparisonHistoryRepository = MockComparisonHistoryRepository()
     }
 }
 

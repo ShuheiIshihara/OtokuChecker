@@ -39,8 +39,8 @@ struct ComparisonProduct {
     }
     
     /// 入力値検証の詳細結果
-    func validateInput() -> [ValidationError] {
-        var errors: [ValidationError] = []
+    func validateInput() -> [ComparisonValidationError] {
+        var errors: [ComparisonValidationError] = []
         
         // 商品名検証
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)

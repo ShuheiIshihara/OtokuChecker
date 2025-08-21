@@ -1,0 +1,363 @@
+//
+//  DataEntryViewModel.swift
+//  OtokuChecker
+//
+//  Created by Claude Code on 2025/08/21.
+//
+
+import Foundation
+import SwiftUI
+import Combine
+
+@MainActor
+class DataEntryViewModel: BaseFormViewModel {
+    
+    // MARK: - Dependencies
+    
+    private let productManagementUseCase: ProductManagementUseCaseProtocol
+    private let categoryManagementUseCase: CategoryManagementUseCaseProtocol
+    
+    // MARK: - Published Properties - Product Data
+    
+    @Published var productName: String = ""
+    @Published var price: String = ""
+    @Published var quantity: String = ""
+    @Published var unit: Unit = .gram
+    @Published var storeName: String = ""
+    @Published var notes: String = ""
+    
+    // MARK: - Published Properties - Category
+    
+    @Published var selectedCategory: ProductCategory?
+    @Published var availableCategories: [ProductCategory] = []
+    @Published var showingCategoryPicker: Bool = false
+    @Published var suggestedCategories: [ProductCategory] = []
+    
+    // MARK: - Published Properties - UI State
+    
+    @Published var isEditing: Bool = false
+    @Published var editingProduct: ProductRecord?
+    @Published var showingSaveConfirmation: Bool = false
+    @Published var showingDiscardAlert: Bool = false
+    
+    // MARK: - Published Properties - Auto-complete
+    
+    @Published var showingProductSuggestions: Bool = false
+    @Published var productSuggestions: [ProductRecord] = []
+    @Published var showingStoreSuggestions: Bool = false
+    @Published var storeSuggestions: [String] = []
+    
+    // MARK: - Computed Properties
+    
+    var canSave: Bool {
+        isValid && !isLoading
+    }
+    
+    var productPreview: ComparisonProduct? {
+        guard let priceValue = Decimal(string: price),
+              let quantityValue = Decimal(string: quantity),
+              !productName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return nil
+        }
+        
+        return ComparisonProduct(
+            name: productName,
+            price: priceValue,
+            quantity: quantityValue,
+            unit: unit,
+            taxIncluded: true, // デフォルトで税込
+            taxRate: 0.10 // 10%税率
+        )
+    }
+    
+    var hasUnsavedChanges: Bool {
+        isDirty && !isEditing
+    }
+    
+    // MARK: - Initialization
+    
+    init(
+        productManagementUseCase: ProductManagementUseCaseProtocol,
+        categoryManagementUseCase: CategoryManagementUseCaseProtocol
+    ) {
+        self.productManagementUseCase = productManagementUseCase
+        self.categoryManagementUseCase = categoryManagementUseCase
+        
+        super.init()
+        
+        setupValidation()
+        setupAutoComplete()
+        loadCategories()
+    }
+    
+    // MARK: - Public Methods - Form Management
+    
+    func saveProduct() {
+        guard let product = productPreview else { return }
+        
+        executeVoidTask {
+            if self.isEditing {
+                await self.updateExistingProduct(product)
+            } else {
+                await self.createNewProduct(product)
+            }
+            
+            self.showingSaveConfirmation = true
+            self.resetForm()
+        }
+    }
+    
+    func startEditing(_ product: ProductRecord) {
+        editingProduct = product
+        isEditing = true
+        
+        productName = product.productName ?? ""
+        price = product.originalPrice?.description ?? ""
+        quantity = product.quantity?.description ?? ""
+        unit = Unit(rawValue: product.unitType ?? "gram") ?? .gram
+        storeName = product.storeName ?? ""
+        notes = product.memo ?? ""
+        selectedCategory = product.category
+        
+        markAsClean()
+        validateForm()
+    }
+    
+    func cancelEditing() {
+        if hasUnsavedChanges {
+            showingDiscardAlert = true
+        } else {
+            discardChanges()
+        }
+    }
+    
+    func discardChanges() {
+        resetForm()
+        editingProduct = nil
+        isEditing = false
+        showingDiscardAlert = false
+    }
+    
+    override func resetForm() {
+        productName = ""
+        price = ""
+        quantity = ""
+        unit = .gram
+        storeName = ""
+        notes = ""
+        selectedCategory = nil
+        
+        hideAllSuggestions()
+        clearValidationErrors()
+        markAsClean()
+    }
+    
+    // MARK: - Public Methods - Category Management
+    
+    func selectCategory(_ category: ProductCategory) {
+        selectedCategory = category
+        showingCategoryPicker = false
+        markAsDirty()
+    }
+    
+    func clearCategory() {
+        selectedCategory = nil
+        markAsDirty()
+    }
+    
+    func suggestCategoriesForCurrentProduct() {
+        guard !productName.isEmpty else {
+            suggestedCategories = []
+            return
+        }
+        
+        executeVoidTask {
+            self.suggestedCategories = try await self.categoryManagementUseCase.suggestCategoriesFor(productName: self.productName)
+        }
+    }
+    
+    // MARK: - Public Methods - Auto-complete
+    
+    func searchProducts(_ query: String) {
+        guard query.count > 1 else {
+            productSuggestions = []
+            showingProductSuggestions = false
+            return
+        }
+        
+        executeVoidTask {
+            self.productSuggestions = try await self.productManagementUseCase.searchProducts(keyword: query)
+            self.showingProductSuggestions = !self.productSuggestions.isEmpty
+        }
+    }
+    
+    func selectProductSuggestion(_ product: ProductRecord) {
+        productName = product.productName ?? ""
+        price = product.originalPrice?.description ?? ""
+        quantity = product.quantity?.description ?? ""
+        unit = Unit(rawValue: product.unitType ?? "gram") ?? .gram
+        storeName = product.storeName ?? ""
+        selectedCategory = product.category
+        
+        hideAllSuggestions()
+        markAsDirty()
+        validateForm()
+    }
+    
+    func hideAllSuggestions() {
+        showingProductSuggestions = false
+        showingStoreSuggestions = false
+        productSuggestions = []
+        storeSuggestions = []
+    }
+    
+    // MARK: - Public Methods - Quick Actions
+    
+    func duplicateProduct() {
+        guard let product = editingProduct else { return }
+        
+        isEditing = false
+        editingProduct = nil
+        
+        productName = "\(product.productName ?? "") のコピー"
+        markAsDirty()
+        validateForm()
+    }
+    
+    func clearPrice() {
+        price = ""
+        markAsDirty()
+    }
+    
+    func clearQuantity() {
+        quantity = ""
+        markAsDirty()
+    }
+    
+    // MARK: - Private Methods
+    
+    private func setupValidation() {
+        Publishers.CombineLatest3($productName, $price, $quantity)
+            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+            .sink { [weak self] name, price, quantity in
+                self?.validateForm()
+                self?.markAsDirty()
+                
+                // カテゴリの自動提案
+                if !name.isEmpty {
+                    self?.suggestCategoriesForCurrentProduct()
+                }
+            }
+            .store(in: &cancellables)
+        
+        $unit
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.markAsDirty()
+            }
+            .store(in: &cancellables)
+        
+        $storeName
+            .dropFirst()
+            .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
+            .sink { [weak self] storeName in
+                self?.markAsDirty()
+                self?.searchStores(storeName)
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func setupAutoComplete() {
+        $productName
+            .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
+            .removeDuplicates()
+            .sink { [weak self] query in
+                if !query.isEmpty && query.count > 1 {
+                    self?.searchProducts(query)
+                } else {
+                    self?.hideAllSuggestions()
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
+    override func performValidation() -> [String: String] {
+        var errors: [String: String] = [:]
+        
+        if productName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            errors["productName"] = "商品名を入力してください"
+        }
+        
+        if price.isEmpty {
+            errors["price"] = "価格を入力してください"
+        } else if let priceValue = Decimal(string: price), priceValue <= 0 {
+            errors["price"] = "有効な価格を入力してください"
+        } else if Decimal(string: price) == nil {
+            errors["price"] = "数字で入力してください"
+        }
+        
+        if quantity.isEmpty {
+            errors["quantity"] = "数量を入力してください"
+        } else if let quantityValue = Decimal(string: quantity), quantityValue <= 0 {
+            errors["quantity"] = "有効な数量を入力してください"
+        } else if Decimal(string: quantity) == nil {
+            errors["quantity"] = "数字で入力してください"
+        }
+        
+        return errors
+    }
+    
+    private func loadCategories() {
+        executeVoidTask {
+            self.availableCategories = try await self.categoryManagementUseCase.fetchAllCategories()
+        }
+    }
+    
+    private func createNewProduct(_ product: ComparisonProduct) async {
+        do {
+            _ = try await productManagementUseCase.saveProduct(product, category: selectedCategory)
+        } catch {
+            // Handle error - could set an error state here
+        }
+    }
+    
+    private func updateExistingProduct(_ product: ComparisonProduct) async {
+        guard let existingProduct = editingProduct else { return }
+        
+        existingProduct.productName = product.name
+        existingProduct.originalPrice = NSDecimalNumber(decimal: product.price)
+        existingProduct.quantity = NSDecimalNumber(decimal: product.quantity)
+        existingProduct.unitType = product.unit.rawValue
+        existingProduct.storeName = storeName.isEmpty ? nil : storeName
+        existingProduct.memo = notes.isEmpty ? nil : notes
+        existingProduct.category = selectedCategory
+        
+        do {
+            _ = try await productManagementUseCase.updateProductGroup(existingProduct.productGroup!)
+        } catch {
+            // Handle error - could set an error state here
+        }
+    }
+    
+    private func searchStores(_ query: String) {
+        guard query.count > 1 else {
+            storeSuggestions = []
+            showingStoreSuggestions = false
+            return
+        }
+        
+        // 実際の実装では、過去のストア名から検索する
+        executeVoidTask {
+            let recentProducts = try await self.productManagementUseCase.fetchRecentProducts(limit: 100)
+            let storeNames = Set(recentProducts.compactMap { $0.storeName })
+            
+            self.storeSuggestions = storeNames
+                .filter { $0.localizedCaseInsensitiveContains(query) }
+                .sorted()
+                .prefix(5)
+                .map { $0 }
+            
+            self.showingStoreSuggestions = !self.storeSuggestions.isEmpty
+        }
+    }
+}

@@ -10,11 +10,13 @@ import SwiftUI
 @main
 struct OtokuCheckerApp: App {
     let persistenceController = PersistenceController.shared
+    let diContainer = DIContainer.shared
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .diContainer(diContainer)
         }
     }
 }

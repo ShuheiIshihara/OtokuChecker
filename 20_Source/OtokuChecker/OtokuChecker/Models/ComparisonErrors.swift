@@ -10,7 +10,7 @@ import Foundation
 // MARK: - 入力検証エラー
 
 /// 入力値検証時のエラー
-enum ValidationError: LocalizedError, Equatable {
+enum ComparisonValidationError: LocalizedError, Equatable {
     // 商品名エラー
     case emptyProductName(String)
     case productNameTooLong(String, Int)
@@ -81,8 +81,8 @@ enum ValidationError: LocalizedError, Equatable {
 enum ComparisonError: LocalizedError, Equatable {
     case incompatibleUnits(Unit, Unit)
     case bothProductsInvalid
-    case productAInvalid([ValidationError])
-    case productBInvalid([ValidationError])
+    case productAInvalid([ComparisonValidationError])
+    case productBInvalid([ComparisonValidationError])
     
     var errorDescription: String? {
         switch self {
@@ -185,7 +185,7 @@ enum CalculationError: LocalizedError, Equatable {
 struct ComparisonErrorHandler {
     
     /// 複数の検証エラーを統合して表示用メッセージを生成
-    static func formatValidationErrors(_ errors: [ValidationError]) -> String {
+    static func formatValidationErrors(_ errors: [ComparisonValidationError]) -> String {
         guard !errors.isEmpty else { return "" }
         
         if errors.count == 1 {
@@ -199,7 +199,7 @@ struct ComparisonErrorHandler {
     /// エラーの重要度を判定
     static func errorSeverity(_ error: Error) -> ErrorSeverity {
         switch error {
-        case is ValidationError:
+        case is ComparisonValidationError:
             return .medium
         case is ComparisonError:
             return .high

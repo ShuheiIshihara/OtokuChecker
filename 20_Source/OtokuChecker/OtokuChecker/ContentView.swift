@@ -19,7 +19,7 @@ struct ContentView: View {
     @State private var errorMessage: String?
     @State private var showingErrorAlert = false
     
-    private let comparisonService = ComparisonService.shared
+    private let comparisonService = ComparisonService()
     
     // レスポンシブレイアウト判定
     private var isLandscape: Bool {
