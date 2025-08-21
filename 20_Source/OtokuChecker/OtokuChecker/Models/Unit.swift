@@ -15,12 +15,16 @@ enum Unit: String, CaseIterable {
     // 容量
     case milliliter = "ml"
     case liter = "L"
+    case cup = "カップ"
+    case gou = "合"
     
     // 個数
     case piece = "個"
     case pack = "パック"
     case bottle = "本"
     case bag = "袋"
+    case sheet = "枚"
+    case slice = "切れ"
     
     var displayName: String {
         switch self {
@@ -28,10 +32,14 @@ enum Unit: String, CaseIterable {
         case .kilogram: return "キログラム"
         case .milliliter: return "ミリリットル"
         case .liter: return "リットル"
+        case .cup: return "カップ"
+        case .gou: return "合"
         case .piece: return "個"
         case .pack: return "パック"
         case .bottle: return "本"
         case .bag: return "袋"
+        case .sheet: return "枚"
+        case .slice: return "切れ"
         }
     }
     
@@ -39,9 +47,9 @@ enum Unit: String, CaseIterable {
         switch self {
         case .gram, .kilogram:
             return .weight
-        case .milliliter, .liter:
+        case .milliliter, .liter, .cup, .gou:
             return .volume
-        case .piece, .pack, .bottle, .bag:
+        case .piece, .pack, .bottle, .bag, .sheet, .slice:
             return .count
         }
     }
@@ -49,11 +57,18 @@ enum Unit: String, CaseIterable {
     // 基本単位への変換係数
     var baseUnitConversionFactor: Decimal {
         switch self {
+        // 重量系（グラム基準）
         case .gram: return 1
         case .kilogram: return 1000
+        
+        // 容量系（ミリリットル基準）
         case .milliliter: return 1
         case .liter: return 1000
-        case .piece, .pack, .bottle, .bag: return 1
+        case .cup: return 180          // 日本の米用カップ
+        case .gou: return 180          // 1合 = 180ml
+        
+        // 個数系（個基準）
+        case .piece, .pack, .bottle, .bag, .sheet, .slice: return 1
         }
     }
     
