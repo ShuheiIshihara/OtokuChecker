@@ -57,12 +57,13 @@ class BaseViewModel: BaseViewModelProtocol {
     
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
+    @Published var currentError: AppError? = nil
     @Published var loadingState: LoadingState = .idle
     
     // MARK: - Computed Properties
     
     var hasError: Bool {
-        errorMessage != nil
+        currentError != nil || errorMessage != nil
     }
     
     // MARK: - Internal Properties (accessible by subclasses)
@@ -79,6 +80,7 @@ class BaseViewModel: BaseViewModelProtocol {
     
     func clearError() {
         errorMessage = nil
+        currentError = nil
         if case .error = loadingState {
             loadingState = .idle
         }
@@ -86,12 +88,65 @@ class BaseViewModel: BaseViewModelProtocol {
     
     func handleError(_ error: Error) {
         let appError = error.asAppError()
+        
+        // エラー状態の更新
         errorMessage = appError.userMessage
+        currentError = appError
         loadingState = .error(appError.userMessage)
         isLoading = false
         
-        // エラーログ出力
-        ErrorLogger.log(appError, context: String(describing: type(of: self)))
+        // エラーハンドラーに委譲（ログ・表示・リカバリーを含む）
+        ErrorHandler.shared.handle(
+            appError,
+            strategy: .queued,
+            context: String(describing: type(of: self))
+        )
+    }
+    
+    /// ViewModel固有のエラーハンドリング（カスタム戦略付き）
+    func handleError(_ error: Error, strategy: ErrorHandler.ErrorHandlingStrategy) {
+        let appError = error.asAppError()
+        
+        // エラー状態の更新
+        errorMessage = appError.userMessage
+        currentError = appError
+        loadingState = .error(appError.userMessage)
+        isLoading = false
+        
+        // エラーハンドラーに委譲（ログ・表示・リカバリーを含む）
+        ErrorHandler.shared.handle(
+            appError,
+            strategy: strategy,
+            context: String(describing: type(of: self))
+        )
+    }
+    
+    /// ViewModel固有のエラーハンドリング（便利メソッド）
+    func handleError(_ error: Error, showToast: Bool = false, allowRetry: Bool = false) {
+        let strategy: ErrorHandler.ErrorHandlingStrategy = showToast ? .immediate : .queued
+        handleError(error, strategy: strategy)
+    }
+    
+    /// バリデーションエラーのハンドリング
+    func handleValidationErrors(_ errors: [ComparisonValidationError]) {
+        let formError = ErrorHandler.shared.handleValidationErrors(errors)
+        handleError(formError, strategy: .immediate)
+    }
+    
+    /// 買い物中のエラーハンドリング（特別な考慮事項あり）
+    func handleShoppingError(_ error: ShoppingContextError) {
+        let appError = AppError.shoppingContextError(error)
+        
+        // 買い物中は邪魔にならないよう配慮
+        let strategy: ErrorHandler.ErrorHandlingStrategy
+        switch error {
+        case .batteryLowWarning, .timeConstraintViolation:
+            strategy = .immediate // 重要なエラーは即座に表示
+        default:
+            strategy = .silent // その他は静かに処理
+        }
+        
+        handleError(appError, strategy: strategy)
     }
     
     // MARK: - Loading State Management
@@ -243,24 +298,34 @@ class BaseFormViewModel: BaseViewModel {
     
     @Published var isValid: Bool = false
     @Published var validationErrors: [String: String] = [:]
+    @Published var comparisonValidationErrors: [ComparisonValidationError] = []
     @Published var isDirty: Bool = false
     
     // MARK: - Computed Properties
     
     var hasValidationErrors: Bool {
-        !validationErrors.isEmpty
+        !validationErrors.isEmpty || !comparisonValidationErrors.isEmpty
     }
     
     // MARK: - Form Methods
     
     func validateForm() {
         let errors = performValidation()
+        let comparisonErrors = performComparisonValidation()
+        
         validationErrors = errors
-        isValid = errors.isEmpty
+        comparisonValidationErrors = comparisonErrors
+        isValid = errors.isEmpty && comparisonErrors.isEmpty
+        
+        // バリデーションエラーがある場合はエラーハンドラーに通知
+        if !comparisonErrors.isEmpty {
+            handleValidationErrors(comparisonErrors)
+        }
     }
     
     func clearValidationErrors() {
         validationErrors = [:]
+        comparisonValidationErrors = []
     }
     
     func clearValidationError(for field: String) {
@@ -286,6 +351,11 @@ class BaseFormViewModel: BaseViewModel {
     func performValidation() -> [String: String] {
         // サブクラスでオーバーライドする
         return [:]
+    }
+    
+    func performComparisonValidation() -> [ComparisonValidationError] {
+        // サブクラスでオーバーライドする
+        return []
     }
     
     func resetForm() {

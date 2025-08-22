@@ -49,6 +49,12 @@ enum AppError: AppErrorProtocol {
     case repositoryError(RepositoryError)
     case useCaseError(UseCaseError)
     
+    // MARK: - Custom Error Types
+    case shoppingContextError(ShoppingContextError)
+    case japaneseMarketError(JapaneseMarketError)  
+    case performanceError(PerformanceError)
+    case dataIntegrityError(DataIntegrityError)
+    
     // MARK: - Unknown Error
     case unknown(Error)
     
@@ -92,6 +98,14 @@ enum AppError: AppErrorProtocol {
             return "REPOSITORY_\(error.localizedDescription.uppercased())"
         case .useCaseError(let error):
             return "USECASE_\(error.localizedDescription.uppercased())"
+        case .shoppingContextError(let error):
+            return "SHOPPING_\(String(describing: error).uppercased())"
+        case .japaneseMarketError(let error):
+            return "JAPANESE_MARKET_\(String(describing: error).uppercased())"
+        case .performanceError(let error):
+            return "PERFORMANCE_\(String(describing: error).uppercased())"
+        case .dataIntegrityError(let error):
+            return "DATA_INTEGRITY_\(String(describing: error).uppercased())"
         case .unknown:
             return "UNKNOWN_ERROR"
         }
@@ -115,6 +129,14 @@ enum AppError: AppErrorProtocol {
             return "ネットワークエラー"
         case .repositoryError, .useCaseError:
             return "アプリケーションエラー"
+        case .shoppingContextError:
+            return "買い物中エラー"
+        case .japaneseMarketError:
+            return "商品情報エラー"
+        case .performanceError:
+            return "パフォーマンスエラー"
+        case .dataIntegrityError:
+            return "データエラー"
         case .unknown:
             return "予期しないエラー"
         }
@@ -159,6 +181,14 @@ enum AppError: AppErrorProtocol {
             return "データアクセスエラー：\(error.localizedDescription)"
         case .useCaseError(let error):
             return "処理エラー：\(error.localizedDescription)"
+        case .shoppingContextError(let error):
+            return error.localizedDescription
+        case .japaneseMarketError(let error):
+            return error.localizedDescription
+        case .performanceError(let error):
+            return error.localizedDescription
+        case .dataIntegrityError(let error):
+            return error.localizedDescription
         case .unknown(let error):
             return "予期しないエラーが発生しました：\(error.localizedDescription)"
         }
@@ -170,6 +200,14 @@ enum AppError: AppErrorProtocol {
             return "Repository Error: \(error)"
         case .useCaseError(let error):
             return "UseCase Error: \(error)"
+        case .shoppingContextError(let error):
+            return "Shopping Context: \(error)"
+        case .japaneseMarketError(let error):
+            return "Japanese Market: \(error)"
+        case .performanceError(let error):
+            return "Performance: \(error)"
+        case .dataIntegrityError(let error):
+            return "Data Integrity: \(error)"
         case .unknown(let error):
             return "Underlying Error: \(error)"
         default:
@@ -197,6 +235,14 @@ enum AppError: AppErrorProtocol {
             return .checkNetwork
         case .deviceNotSupported:
             return .upgradeDevice
+        case .shoppingContextError(let error):
+            return mapShoppingContextRecoveryAction(error)
+        case .japaneseMarketError(let error):
+            return mapJapaneseMarketRecoveryAction(error)
+        case .performanceError(let error):
+            return mapPerformanceRecoveryAction(error)
+        case .dataIntegrityError(let error):
+            return mapDataIntegrityRecoveryAction(error)
         default:
             return .contactSupport
         }
@@ -215,6 +261,70 @@ enum AppError: AppErrorProtocol {
     var recoverySuggestion: String? {
         return recoveryAction?.suggestion
     }
+    
+    // MARK: - Custom Error Recovery Action Mapping
+    
+    private func mapShoppingContextRecoveryAction(_ error: ShoppingContextError) -> ErrorRecoveryAction {
+        switch error {
+        case .weakSignalInStore, .backgroundAppInterruption:
+            return .restartApp
+        case .batteryLowWarning:
+            return .checkSettings
+        case .oneHandedInputMistake, .cartCollisionInput:
+            return .retryInput
+        case .timeConstraintViolation:
+            return .restartApp
+        case .storeDataConflict, .priceVolatilityDetected:
+            return .checkInput
+        }
+    }
+    
+    private func mapJapaneseMarketRecoveryAction(_ error: JapaneseMarketError) -> ErrorRecoveryAction {
+        switch error {
+        case .taxRateAmbiguity, .includedTaxMismatch:
+            return .checkSettings
+        case .traditionalUnitConversion, .kanjiNumeralConversion:
+            return .retryInput
+        case .fullWidthHalfWidthMixing, .hiraganaKatakanaMismatch:
+            return .checkInput
+        case .brandNameVariation, .productNameTooComplex:
+            return .retryInput
+        case .regionalPricingConflict:
+            return .checkInput
+        case .storeChainDetection, .regionalDialectInStoreName:
+            return .checkInput
+        }
+    }
+    
+    private func mapPerformanceRecoveryAction(_ error: PerformanceError) -> ErrorRecoveryAction {
+        switch error {
+        case .comparisonTimeout, .searchTimeout, .dataLoadTimeout:
+            return .restartApp
+        case .memoryPressureHigh, .tooManyRecordsLoaded:
+            return .restartApp
+        case .cacheOverflow:
+            return .clearCache
+        case .calculationComplexity, .backgroundProcessingDelay:
+            return .retryInput
+        }
+    }
+    
+    private func mapDataIntegrityRecoveryAction(_ error: DataIntegrityError) -> ErrorRecoveryAction {
+        switch error {
+        case .duplicateProductDetected:
+            return .mergeData
+        case .priceOutlierDetected:
+            return .checkInput
+        case .categoryMismatch:
+            return .fixCategory
+        case .incompleteProductData, .suspiciousDataEntry:
+            return .retryInput
+        case .dataVersionMismatch:
+            return .updateApp
+        case .orphanedRecord, .brokenRelationship:
+            return .repairData
+        }
+    }
 }
 
 // MARK: - Error Recovery Actions
@@ -228,6 +338,13 @@ enum ErrorRecoveryAction {
     case restartApp
     case upgradeDevice
     case contactSupport
+    
+    // 新しいカスタムリカバリーアクション
+    case clearCache
+    case mergeData
+    case fixCategory
+    case updateApp
+    case repairData
     
     var suggestion: String {
         switch self {
@@ -247,6 +364,16 @@ enum ErrorRecoveryAction {
             return "お使いのデバイスをアップデートするか、新しいデバイスをご利用ください。"
         case .contactSupport:
             return "問題が解決しない場合は、サポートまでお問い合わせください。"
+        case .clearCache:
+            return "キャッシュをクリアしてください。"
+        case .mergeData:
+            return "重複データを統合してください。"
+        case .fixCategory:
+            return "カテゴリを修正してください。"
+        case .updateApp:
+            return "アプリを最新版に更新してください。"
+        case .repairData:
+            return "データの修復を実行してください。"
         }
     }
 }
@@ -269,6 +396,18 @@ extension Error {
             return AppError.repositoryError(repositoryError)
         } else if let useCaseError = self as? UseCaseError {
             return AppError.useCaseError(useCaseError)
+        } else if let shoppingError = self as? ShoppingContextError {
+            return AppError.shoppingContextError(shoppingError)
+        } else if let marketError = self as? JapaneseMarketError {
+            return AppError.japaneseMarketError(marketError)
+        } else if let performanceError = self as? PerformanceError {
+            return AppError.performanceError(performanceError)
+        } else if let dataError = self as? DataIntegrityError {
+            return AppError.dataIntegrityError(dataError)
+        } else if let comparisonError = self as? ComparisonError {
+            return AppError.comparisonNotPossible(comparisonError.localizedDescription)
+        } else if let calculationError = self as? CalculationError {
+            return AppError.calculationError(calculationError.localizedDescription)
         } else {
             return AppError.unknown(self)
         }
