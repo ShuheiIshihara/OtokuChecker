@@ -200,12 +200,46 @@ struct ContentView: View {
     }
     
     private var canPerformComparison: Bool {
-        let validation = comparisonService.canCompareProducts(productA, productB)
+        let comparisonProductA = ComparisonProduct(
+            name: productA.name,
+            price: productA.price,
+            quantity: productA.quantity,
+            unit: productA.unit,
+            taxIncluded: true,
+            taxRate: Decimal(0.10)
+        )
+        let comparisonProductB = ComparisonProduct(
+            name: productB.name,
+            price: productB.price,
+            quantity: productB.quantity,
+            unit: productB.unit,
+            taxIncluded: true,
+            taxRate: Decimal(0.10)
+        )
+        
+        let validation = comparisonService.canCompareProducts(comparisonProductA, comparisonProductB)
         return validation.canCompare
     }
     
     private func performComparison() {
-        let validation = comparisonService.canCompareProducts(productA, productB)
+        let comparisonProductA = ComparisonProduct(
+            name: productA.name,
+            price: productA.price,
+            quantity: productA.quantity,
+            unit: productA.unit,
+            taxIncluded: true,
+            taxRate: Decimal(0.10)
+        )
+        let comparisonProductB = ComparisonProduct(
+            name: productB.name,
+            price: productB.price,
+            quantity: productB.quantity,
+            unit: productB.unit,
+            taxIncluded: true,
+            taxRate: Decimal(0.10)
+        )
+        
+        let validation = comparisonService.canCompareProducts(comparisonProductA, comparisonProductB)
         
         guard validation.canCompare else {
             errorMessage = validation.reason
@@ -213,7 +247,28 @@ struct ContentView: View {
             return
         }
         
-        comparisonResult = comparisonService.compareProducts(productA, productB)
+        do {
+            let result = try comparisonService.compare(productA: comparisonProductA, productB: comparisonProductB)
+            // Convert ExtendedComparisonResult to ComparisonResult for compatibility
+            let winner: ComparisonResult.Winner = {
+                switch result.winner {
+                case .productA: return .productA
+                case .productB: return .productB
+                case .tie: return .tie
+                }
+            }()
+            
+            comparisonResult = ComparisonResult(
+                productA: productA,
+                productB: productB,
+                winner: winner,
+                priceDifference: result.comparisonDetails.priceDifference,
+                percentageDifference: result.comparisonDetails.percentageDifference
+            )
+        } catch {
+            errorMessage = error.localizedDescription
+            showingErrorAlert = true
+        }
     }
 }
 

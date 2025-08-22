@@ -9,9 +9,9 @@ import Foundation
 
 class HistoryManagementUseCase: HistoryManagementUseCaseProtocol {
     
-    private let comparisonHistoryRepository: ComparisonHistoryRepositoryProtocol
+    private let comparisonHistoryRepository: any ComparisonHistoryRepositoryProtocol
     
-    init(comparisonHistoryRepository: ComparisonHistoryRepositoryProtocol) {
+    init(comparisonHistoryRepository: any ComparisonHistoryRepositoryProtocol) {
         self.comparisonHistoryRepository = comparisonHistoryRepository
     }
     

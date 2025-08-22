@@ -11,6 +11,7 @@ import Combine
 
 // MARK: - Base View Model Protocol
 
+@MainActor
 protocol BaseViewModelProtocol: ObservableObject {
     var isLoading: Bool { get set }
     var errorMessage: String? { get set }
@@ -298,6 +299,7 @@ class BaseFormViewModel: BaseViewModel {
 
 extension BaseViewModel {
     
+    @discardableResult
     func executeTask<T>(_ task: @escaping () async throws -> T) -> Task<T?, Never> {
         return Task { @MainActor in
             return await withLoading {
@@ -306,6 +308,7 @@ extension BaseViewModel {
         }
     }
     
+    @discardableResult
     func executeVoidTask(_ task: @escaping () async throws -> Void) -> Task<Void, Never> {
         return Task { @MainActor in
             await withLoadingVoid {
@@ -317,6 +320,7 @@ extension BaseViewModel {
 
 // MARK: - View Model Factory Protocol
 
+@MainActor
 protocol ViewModelFactory {
     func makeMainComparisonViewModel() -> MainComparisonViewModel
     func makeDataEntryViewModel() -> DataEntryViewModel

@@ -9,14 +9,14 @@ import Foundation
 
 class ProductManagementUseCase: ProductManagementUseCaseProtocol {
     
-    private let productRecordRepository: ProductRecordRepositoryProtocol
-    private let productGroupRepository: ProductGroupRepositoryProtocol
-    private let categoryRepository: ProductCategoryRepositoryProtocol
+    private let productRecordRepository: any ProductRecordRepositoryProtocol
+    private let productGroupRepository: any ProductGroupRepositoryProtocol
+    private let categoryRepository: any ProductCategoryRepositoryProtocol
     
     init(
-        productRecordRepository: ProductRecordRepositoryProtocol,
-        productGroupRepository: ProductGroupRepositoryProtocol,
-        categoryRepository: ProductCategoryRepositoryProtocol
+        productRecordRepository: any ProductRecordRepositoryProtocol,
+        productGroupRepository: any ProductGroupRepositoryProtocol,
+        categoryRepository: any ProductCategoryRepositoryProtocol
     ) {
         self.productRecordRepository = productRecordRepository
         self.productGroupRepository = productGroupRepository

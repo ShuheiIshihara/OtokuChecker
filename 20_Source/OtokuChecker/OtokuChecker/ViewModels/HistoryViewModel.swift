@@ -14,8 +14,8 @@ class HistoryViewModel: BaseListViewModel<ProductRecord> {
     
     // MARK: - Dependencies
     
-    private let historyManagementUseCase: HistoryManagementUseCaseProtocol
-    private let productManagementUseCase: ProductManagementUseCaseProtocol
+    private let historyManagementUseCase: any HistoryManagementUseCaseProtocol
+    private let productManagementUseCase: any ProductManagementUseCaseProtocol
     
     // MARK: - Published Properties - View Mode
     
@@ -76,8 +76,8 @@ class HistoryViewModel: BaseListViewModel<ProductRecord> {
     // MARK: - Initialization
     
     init(
-        historyManagementUseCase: HistoryManagementUseCaseProtocol,
-        productManagementUseCase: ProductManagementUseCaseProtocol
+        historyManagementUseCase: any HistoryManagementUseCaseProtocol,
+        productManagementUseCase: any ProductManagementUseCaseProtocol
     ) {
         self.historyManagementUseCase = historyManagementUseCase
         self.productManagementUseCase = productManagementUseCase

@@ -14,8 +14,8 @@ class MainComparisonViewModel: BaseFormViewModel {
     
     // MARK: - Dependencies
     
-    private let comparisonUseCase: ComparisonUseCaseProtocol
-    private let productManagementUseCase: ProductManagementUseCaseProtocol
+    private let comparisonUseCase: any ComparisonUseCaseProtocol
+    private let productManagementUseCase: any ProductManagementUseCaseProtocol
     
     // MARK: - Published Properties - Product A
     
@@ -86,8 +86,8 @@ class MainComparisonViewModel: BaseFormViewModel {
     // MARK: - Initialization
     
     init(
-        comparisonUseCase: ComparisonUseCaseProtocol,
-        productManagementUseCase: ProductManagementUseCaseProtocol
+        comparisonUseCase: any ComparisonUseCaseProtocol,
+        productManagementUseCase: any ProductManagementUseCaseProtocol
     ) {
         self.comparisonUseCase = comparisonUseCase
         self.productManagementUseCase = productManagementUseCase
@@ -184,7 +184,7 @@ class MainComparisonViewModel: BaseFormViewModel {
         
         executeVoidTask {
             _ = try await self.productManagementUseCase.saveProduct(product, category: nil)
-            await self.loadRecentProducts()
+            self.loadRecentProducts()
         }
     }
     
@@ -193,7 +193,7 @@ class MainComparisonViewModel: BaseFormViewModel {
         
         executeVoidTask {
             _ = try await self.productManagementUseCase.saveProduct(product, category: nil)
-            await self.loadRecentProducts()
+            self.loadRecentProducts()
         }
     }
     

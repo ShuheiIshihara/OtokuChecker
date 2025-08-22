@@ -50,19 +50,19 @@ class DIContainer: DIContainerProtocol {
     
     // MARK: - Repository Instances (Lazy Loading)
     
-    private lazy var _productCategoryRepository: ProductCategoryRepositoryProtocol = {
+    private lazy var _productCategoryRepository: any ProductCategoryRepositoryProtocol = {
         return CoreDataProductCategoryRepository(context: getManagedObjectContext())
     }()
     
-    private lazy var _productGroupRepository: ProductGroupRepositoryProtocol = {
+    private lazy var _productGroupRepository: any ProductGroupRepositoryProtocol = {
         return CoreDataProductGroupRepository(context: getManagedObjectContext())
     }()
     
-    private lazy var _productRecordRepository: ProductRecordRepositoryProtocol = {
+    private lazy var _productRecordRepository: any ProductRecordRepositoryProtocol = {
         return CoreDataProductRecordRepository(context: getManagedObjectContext())
     }()
     
-    private lazy var _comparisonHistoryRepository: ComparisonHistoryRepositoryProtocol = {
+    private lazy var _comparisonHistoryRepository: any ComparisonHistoryRepositoryProtocol = {
         return CoreDataComparisonHistoryRepository(context: getManagedObjectContext())
     }()
     
@@ -74,7 +74,7 @@ class DIContainer: DIContainerProtocol {
     
     // MARK: - UseCase Instances (Lazy Loading)
     
-    private lazy var _comparisonUseCase: ComparisonUseCaseProtocol = {
+    private lazy var _comparisonUseCase: any ComparisonUseCaseProtocol = {
         return ComparisonUseCase(
             comparisonService: getComparisonService(),
             comparisonHistoryRepository: getComparisonHistoryRepository(),
@@ -82,7 +82,7 @@ class DIContainer: DIContainerProtocol {
         )
     }()
     
-    private lazy var _productManagementUseCase: ProductManagementUseCaseProtocol = {
+    private lazy var _productManagementUseCase: any ProductManagementUseCaseProtocol = {
         return ProductManagementUseCase(
             productRecordRepository: getProductRecordRepository(),
             productGroupRepository: getProductGroupRepository(),
@@ -90,13 +90,13 @@ class DIContainer: DIContainerProtocol {
         )
     }()
     
-    private lazy var _historyManagementUseCase: HistoryManagementUseCaseProtocol = {
+    private lazy var _historyManagementUseCase: any HistoryManagementUseCaseProtocol = {
         return HistoryManagementUseCase(
             comparisonHistoryRepository: getComparisonHistoryRepository()
         )
     }()
     
-    private lazy var _categoryManagementUseCase: CategoryManagementUseCaseProtocol = {
+    private lazy var _categoryManagementUseCase: any CategoryManagementUseCaseProtocol = {
         return CategoryManagementUseCase(
             categoryRepository: getProductCategoryRepository()
         )
@@ -104,19 +104,19 @@ class DIContainer: DIContainerProtocol {
     
     // MARK: - DIContainerProtocol Implementation
     
-    func getProductCategoryRepository() -> ProductCategoryRepositoryProtocol {
+    func getProductCategoryRepository() -> any ProductCategoryRepositoryProtocol {
         return _productCategoryRepository
     }
     
-    func getProductGroupRepository() -> ProductGroupRepositoryProtocol {
+    func getProductGroupRepository() -> any ProductGroupRepositoryProtocol {
         return _productGroupRepository
     }
     
-    func getProductRecordRepository() -> ProductRecordRepositoryProtocol {
+    func getProductRecordRepository() -> any ProductRecordRepositoryProtocol {
         return _productRecordRepository
     }
     
-    func getComparisonHistoryRepository() -> ComparisonHistoryRepositoryProtocol {
+    func getComparisonHistoryRepository() -> any ComparisonHistoryRepositoryProtocol {
         return _comparisonHistoryRepository
     }
     
@@ -124,19 +124,19 @@ class DIContainer: DIContainerProtocol {
         return _comparisonService
     }
     
-    func getComparisonUseCase() -> ComparisonUseCaseProtocol {
+    func getComparisonUseCase() -> any ComparisonUseCaseProtocol {
         return _comparisonUseCase
     }
     
-    func getProductManagementUseCase() -> ProductManagementUseCaseProtocol {
+    func getProductManagementUseCase() -> any ProductManagementUseCaseProtocol {
         return _productManagementUseCase
     }
     
-    func getHistoryManagementUseCase() -> HistoryManagementUseCaseProtocol {
+    func getHistoryManagementUseCase() -> any HistoryManagementUseCaseProtocol {
         return _historyManagementUseCase
     }
     
-    func getCategoryManagementUseCase() -> CategoryManagementUseCaseProtocol {
+    func getCategoryManagementUseCase() -> any CategoryManagementUseCaseProtocol {
         return _categoryManagementUseCase
     }
 }
@@ -160,19 +160,19 @@ class TestDIContainer: DIContainerProtocol {
     
     // MARK: - Mock Repositories
     
-    func getProductCategoryRepository() -> ProductCategoryRepositoryProtocol {
+    func getProductCategoryRepository() -> any ProductCategoryRepositoryProtocol {
         return MockProductCategoryRepository()
     }
     
-    func getProductGroupRepository() -> ProductGroupRepositoryProtocol {
+    func getProductGroupRepository() -> any ProductGroupRepositoryProtocol {
         return MockProductGroupRepository()
     }
     
-    func getProductRecordRepository() -> ProductRecordRepositoryProtocol {
+    func getProductRecordRepository() -> any ProductRecordRepositoryProtocol {
         return MockProductRecordRepository()
     }
     
-    func getComparisonHistoryRepository() -> ComparisonHistoryRepositoryProtocol {
+    func getComparisonHistoryRepository() -> any ComparisonHistoryRepositoryProtocol {
         return MockComparisonHistoryRepository()
     }
     
@@ -184,7 +184,7 @@ class TestDIContainer: DIContainerProtocol {
     
     // MARK: - UseCases with Mock Dependencies
     
-    func getComparisonUseCase() -> ComparisonUseCaseProtocol {
+    func getComparisonUseCase() -> any ComparisonUseCaseProtocol {
         return ComparisonUseCase(
             comparisonService: getComparisonService(),
             comparisonHistoryRepository: getComparisonHistoryRepository(),
@@ -192,7 +192,7 @@ class TestDIContainer: DIContainerProtocol {
         )
     }
     
-    func getProductManagementUseCase() -> ProductManagementUseCaseProtocol {
+    func getProductManagementUseCase() -> any ProductManagementUseCaseProtocol {
         return ProductManagementUseCase(
             productRecordRepository: getProductRecordRepository(),
             productGroupRepository: getProductGroupRepository(),
@@ -200,13 +200,13 @@ class TestDIContainer: DIContainerProtocol {
         )
     }
     
-    func getHistoryManagementUseCase() -> HistoryManagementUseCaseProtocol {
+    func getHistoryManagementUseCase() -> any HistoryManagementUseCaseProtocol {
         return HistoryManagementUseCase(
             comparisonHistoryRepository: getComparisonHistoryRepository()
         )
     }
     
-    func getCategoryManagementUseCase() -> CategoryManagementUseCaseProtocol {
+    func getCategoryManagementUseCase() -> any CategoryManagementUseCaseProtocol {
         return CategoryManagementUseCase(
             categoryRepository: getProductCategoryRepository()
         )

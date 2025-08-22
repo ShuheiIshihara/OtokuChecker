@@ -14,8 +14,8 @@ class DataEntryViewModel: BaseFormViewModel {
     
     // MARK: - Dependencies
     
-    private let productManagementUseCase: ProductManagementUseCaseProtocol
-    private let categoryManagementUseCase: CategoryManagementUseCaseProtocol
+    private let productManagementUseCase: any ProductManagementUseCaseProtocol
+    private let categoryManagementUseCase: any CategoryManagementUseCaseProtocol
     
     // MARK: - Published Properties - Product Data
     
@@ -77,8 +77,8 @@ class DataEntryViewModel: BaseFormViewModel {
     // MARK: - Initialization
     
     init(
-        productManagementUseCase: ProductManagementUseCaseProtocol,
-        categoryManagementUseCase: CategoryManagementUseCaseProtocol
+        productManagementUseCase: any ProductManagementUseCaseProtocol,
+        categoryManagementUseCase: any CategoryManagementUseCaseProtocol
     ) {
         self.productManagementUseCase = productManagementUseCase
         self.categoryManagementUseCase = categoryManagementUseCase

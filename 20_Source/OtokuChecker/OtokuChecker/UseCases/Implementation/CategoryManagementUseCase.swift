@@ -92,7 +92,7 @@ class CategoryManagementUseCase: CategoryManagementUseCaseProtocol {
     func createCustomCategory(name: String, icon: String, colorHex: String?) async throws -> ProductCategory {
         // 重複チェック
         do {
-            if let existingCategory = try await categoryRepository.fetchByName(name) {
+            if (try await categoryRepository.fetchByName(name)) != nil {
                 throw UseCaseError.invalidInput
             }
         } catch {

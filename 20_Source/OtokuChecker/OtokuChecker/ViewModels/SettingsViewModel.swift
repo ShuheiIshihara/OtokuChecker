@@ -14,7 +14,7 @@ class SettingsViewModel: BaseViewModel {
     
     // MARK: - Dependencies
     
-    private let categoryManagementUseCase: CategoryManagementUseCaseProtocol
+    private let categoryManagementUseCase: any CategoryManagementUseCaseProtocol
     
     // MARK: - Published Properties - Categories
     
@@ -40,7 +40,7 @@ class SettingsViewModel: BaseViewModel {
     
     // MARK: - Initialization
     
-    init(categoryManagementUseCase: CategoryManagementUseCaseProtocol) {
+    init(categoryManagementUseCase: any CategoryManagementUseCaseProtocol) {
         self.categoryManagementUseCase = categoryManagementUseCase
         
         super.init()
@@ -66,7 +66,7 @@ class SettingsViewModel: BaseViewModel {
     func initializeSystemCategories() {
         executeVoidTask {
             try await self.categoryManagementUseCase.initializeSystemCategories()
-            await self.loadCategories()
+            self.loadCategories()
         }
     }
     
@@ -79,14 +79,14 @@ class SettingsViewModel: BaseViewModel {
                 icon: icon,
                 colorHex: colorHex
             )
-            await self.loadCategories()
+            self.loadCategories()
         }
     }
     
     func updateCategory(_ category: ProductCategory) {
         executeVoidTask {
             try await self.categoryManagementUseCase.updateCategory(category)
-            await self.loadCategories()
+            self.loadCategories()
         }
     }
     
@@ -95,7 +95,7 @@ class SettingsViewModel: BaseViewModel {
         
         executeVoidTask {
             try await self.categoryManagementUseCase.deleteCategory(category)
-            await self.loadCategories()
+            self.loadCategories()
         }
     }
     
