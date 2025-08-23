@@ -28,6 +28,7 @@ class SettingsViewModel: BaseViewModel {
     @Published var showingDataExport: Bool = false
     @Published var showingDataImport: Bool = false
     @Published var showingAbout: Bool = false
+    @Published var showingPrivacyInfo: Bool = false
     
     // MARK: - Published Properties - Settings
     
@@ -129,6 +130,12 @@ class SettingsViewModel: BaseViewModel {
     func toggleHapticFeedback() {
         enableHapticFeedback.toggle()
         saveSettings()
+    }
+    
+    // MARK: - Public Methods - Privacy & Info
+    
+    func showPrivacyInfo() {
+        showingPrivacyInfo = true
     }
     
     // MARK: - Public Methods - Data Management
