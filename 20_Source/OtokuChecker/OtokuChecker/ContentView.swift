@@ -118,17 +118,11 @@ struct ContentView: View {
                     HStack {
                         Image(systemName: "lightbulb")
                         Text("比較する")
-                            .fontWeight(.semibold)
                     }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 40)
-                    .padding(.vertical, 12)
-                    .background(
-                        canPerformComparison ? Color.blue : Color.gray
-                    )
-                    .cornerRadius(10)
                 }
+                .primaryButtonStyle(isEnabled: canPerformComparison)
                 .disabled(!canPerformComparison)
+                .padding(.horizontal, 40)
                 Spacer()
             }
             
@@ -173,17 +167,11 @@ struct ContentView: View {
             HStack {
                 Image(systemName: "lightbulb")
                 Text("比較する")
-                    .fontWeight(.semibold)
             }
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .padding(isLandscape ? 12 : 16)
-            .background(
-                canPerformComparison ? Color.blue : Color.gray
-            )
-            .cornerRadius(10)
         }
+        .primaryButtonStyle(isEnabled: canPerformComparison)
         .disabled(!canPerformComparison)
+        .padding(isLandscape ? 12 : 16)
     }
     
     // 比較結果セクション

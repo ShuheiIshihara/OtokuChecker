@@ -38,17 +38,16 @@ struct ValidatedTextField: View {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.medium)
+                    .foregroundColor(AppColors.primaryText)
                 
                 if hasError {
                     Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundColor(.red)
-                        .font(.caption)
+                        .statusIconStyle(.error)
                 }
                 
                 if isValid && !text.isEmpty {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                        .font(.caption)
+                        .statusIconStyle(.success)
                 }
                 
                 Spacer()
@@ -58,17 +57,13 @@ struct ValidatedTextField: View {
                     let (current, max, isOver) = ProductNameValidator.checkLength(text)
                     Text("\(current)/\(max)")
                         .font(.caption2)
-                        .foregroundColor(isOver ? .red : .secondary)
+                        .foregroundColor(isOver ? AppColors.error : AppColors.secondaryText)
                 }
             }
             
             // テキストフィールド
             TextField(placeholder, text: $text)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(borderColor, lineWidth: hasError ? 2 : 1)
-                )
+                .validatedInputStyle(isValid: isValid, hasError: hasError, isEmpty: text.isEmpty)
                 .keyboardType(keyboardType)
                 .onChange(of: text) { _ in
                     validateWithDebounce()
@@ -81,13 +76,10 @@ struct ValidatedTextField: View {
             if let errorMessage = errorMessage {
                 HStack(alignment: .top, spacing: 4) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.red)
-                        .font(.caption)
+                        .statusIconStyle(.error)
                     
                     Text(errorMessage)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.leading)
+                        .errorMessageStyle()
                     
                     Spacer()
                 }
@@ -97,13 +89,10 @@ struct ValidatedTextField: View {
             if let warningMessage = warningMessage, errorMessage == nil {
                 HStack(alignment: .top, spacing: 4) {
                     Image(systemName: "info.circle.fill")
-                        .foregroundColor(.orange)
-                        .font(.caption)
+                        .statusIconStyle(.warning)
                     
                     Text(warningMessage)
-                        .font(.caption)
-                        .foregroundColor(.orange)
-                        .multilineTextAlignment(.leading)
+                        .warningMessageStyle()
                     
                     Spacer()
                 }
@@ -119,11 +108,11 @@ struct ValidatedTextField: View {
     
     private var borderColor: Color {
         if hasError {
-            return .red
+            return AppColors.errorBorder
         } else if isValid && !text.isEmpty {
-            return .green
+            return AppColors.successBorder
         } else {
-            return Color(.systemGray4)
+            return AppColors.border
         }
     }
     

@@ -21,15 +21,14 @@ struct ProductInputView: View {
             // ヘッダー
             HStack {
                 Text("\(icon) \(title)")
-                    .font(.headline)
-                    .foregroundColor(.primary)
+                    .sectionTitleStyle()
                 
                 Spacer()
                 
                 Button(action: onHistoryTap) {
                     Image(systemName: "doc.on.clipboard")
                         .font(.title2)
-                        .foregroundColor(.blue)
+                        .foregroundColor(AppColors.primary)
                 }
             }
             
@@ -38,41 +37,38 @@ struct ProductInputView: View {
                 // 商品名
                 VStack(alignment: .leading, spacing: 4) {
                     Text("商品名")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .fieldLabelStyle()
                     
                     TextField("商品名を入力", text: $product.name)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .inputFieldStyle()
                 }
                 
                 // 価格
                 VStack(alignment: .leading, spacing: 4) {
                     Text("価格")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .fieldLabelStyle()
                     
                     HStack {
                         TextField("価格", text: $priceText)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .inputFieldStyle()
                             .keyboardType(.decimalPad)
                             .onChange(of: priceText) { newValue in
                                 updatePrice(from: newValue)
                             }
                         
                         Text("円")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(AppColors.secondaryText)
                     }
                 }
                 
                 // 容量
                 VStack(alignment: .leading, spacing: 4) {
                     Text("容量")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .fieldLabelStyle()
                     
                     HStack {
                         TextField("容量", text: $quantityText)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .inputFieldStyle()
                             .keyboardType(.decimalPad)
                             .onChange(of: quantityText) { newValue in
                                 updateQuantity(from: newValue)
@@ -88,9 +84,7 @@ struct ProductInputView: View {
                     }
                 }
             }
-            .padding(12)
-            .background(Color(.systemGray6))
-            .cornerRadius(8)
+            .cardStyle()
         }
         .onAppear {
             initializeTextFields()

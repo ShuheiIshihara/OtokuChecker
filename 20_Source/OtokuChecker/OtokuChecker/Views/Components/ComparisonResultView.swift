@@ -15,8 +15,7 @@ struct ComparisonResultView: View {
     var body: some View {
         VStack(spacing: 16) {
             Text("💡 比較結果")
-                .font(.headline)
-                .foregroundColor(.primary)
+                .sectionTitleStyle()
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             if let result = result {
@@ -29,7 +28,7 @@ struct ComparisonResultView: View {
                         Text(result.winner.displayText)
                             .font(.title2)
                             .fontWeight(.bold)
-                            .foregroundColor(result.winner == .tie ? .orange : .green)
+                            .foregroundColor(result.winner == .tie ? AppColors.warning : AppColors.success)
                         Spacer()
                     }
                     
@@ -39,7 +38,7 @@ struct ComparisonResultView: View {
                             Text("商品A:")
                                 .fontWeight(.medium)
                             Text(result.productA.formattedUnitPrice)
-                                .foregroundColor(result.winner == .productA ? .green : .primary)
+                                .foregroundColor(result.winner == .productA ? AppColors.success : AppColors.primaryText)
                                 .fontWeight(result.winner == .productA ? .bold : .regular)
                             if result.winner == .productA {
                                 Text("🏆")
@@ -51,7 +50,7 @@ struct ComparisonResultView: View {
                             Text("商品B:")
                                 .fontWeight(.medium)
                             Text(result.productB.formattedUnitPrice)
-                                .foregroundColor(result.winner == .productB ? .green : .primary)
+                                .foregroundColor(result.winner == .productB ? AppColors.success : AppColors.primaryText)
                                 .fontWeight(result.winner == .productB ? .bold : .regular)
                             if result.winner == .productB {
                                 Text("🏆")
@@ -62,7 +61,7 @@ struct ComparisonResultView: View {
                         if result.winner != .tie {
                             Text(result.formattedPriceDifference)
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(AppColors.secondaryText)
                         }
                     }
                     .padding(.vertical, 8)
@@ -78,12 +77,8 @@ struct ComparisonResultView: View {
                                         .foregroundColor(.yellow)
                                 }
                             }
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(result.winner == .productA ? Color.green : Color.blue)
-                            .cornerRadius(8)
                         }
+                        .smallActionButtonStyle()
                         
                         Button(action: onSaveProductB) {
                             HStack {
@@ -94,19 +89,15 @@ struct ComparisonResultView: View {
                                         .foregroundColor(.yellow)
                                 }
                             }
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(result.winner == .productB ? Color.green : Color.blue)
-                            .cornerRadius(8)
                         }
+                        .smallActionButtonStyle()
                     }
                 }
                 .padding(16)
-                .background(Color(.systemBackground))
+                .background(AppColors.background)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color(.systemGray4), lineWidth: 1)
+                        .stroke(AppColors.border, lineWidth: 1)
                 )
                 .cornerRadius(12)
             } else {
@@ -114,16 +105,16 @@ struct ComparisonResultView: View {
                 VStack(spacing: 8) {
                     Image(systemName: "arrow.up.arrow.down")
                         .font(.title)
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppColors.secondaryText)
                     
                     Text("商品情報を入力して比較ボタンを押してください")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(AppColors.secondaryText)
                         .multilineTextAlignment(.center)
                 }
                 .padding(32)
                 .frame(maxWidth: .infinity)
-                .background(Color(.systemGray6))
+                .background(AppColors.cardBackground)
                 .cornerRadius(12)
             }
         }
