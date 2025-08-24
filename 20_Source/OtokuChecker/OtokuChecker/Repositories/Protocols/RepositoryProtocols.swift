@@ -74,6 +74,7 @@ protocol ProductRecordRepositoryProtocol: BaseRepository where Entity == Product
         quantity: Decimal,
         unitType: String,
         storeName: String?,
+        origin: String?,
         productGroup: ProductGroup?,
         category: ProductCategory?
     ) async throws -> ProductRecord

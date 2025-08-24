@@ -352,6 +352,7 @@ class MockProductRecordRepository: ProductRecordRepositoryProtocol {
         quantity: Decimal,
         unitType: String,
         storeName: String?,
+        origin: String?,
         productGroup: ProductGroup?,
         category: ProductCategory?
     ) async throws -> ProductRecord {
@@ -361,7 +362,8 @@ class MockProductRecordRepository: ProductRecordRepositoryProtocol {
             originalPrice: originalPrice,
             quantity: quantity,
             unitType: unitType,
-            storeName: storeName
+            storeName: storeName,
+            origin: origin
         )
         nextId += 1
         records.append(record)
@@ -585,18 +587,20 @@ class MockProductRecord {
     var quantity: Decimal
     var unitType: String
     var storeName: String?
+    var origin: String?
     var purchaseDate: Date?
     var createdAt: Date
     var updatedAt: Date
     var deletedFlag: Bool = false
     
-    init(id: Int, productName: String, originalPrice: Decimal, quantity: Decimal, unitType: String, storeName: String?) {
+    init(id: Int, productName: String, originalPrice: Decimal, quantity: Decimal, unitType: String, storeName: String?, origin: String?) {
         self.entityID = UUID()
         self.productName = productName
         self.originalPrice = originalPrice
         self.quantity = quantity
         self.unitType = unitType
         self.storeName = storeName
+        self.origin = origin
         self.purchaseDate = Date()
         self.createdAt = Date()
         self.updatedAt = Date()

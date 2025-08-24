@@ -29,14 +29,16 @@ final class ComparisonEngineTests: XCTestCase {
             price: 100,
             quantity: 1,
             unit: .gram,
-            taxIncluded: true
+            taxIncluded: true,
+            origin: "domestic"
         )
         let productB = ComparisonProduct.sample(
             name: "商品B",
             price: 150,
             quantity: 1,
             unit: .gram,
-            taxIncluded: true
+            taxIncluded: true,
+            origin: "imported"
         )
         
         let result = try comparisonEngine.compare(productA, productB)
@@ -54,13 +56,15 @@ final class ComparisonEngineTests: XCTestCase {
             name: "商品A",
             price: 100,
             quantity: 1,
-            unit: .gram
+            unit: .gram,
+            origin: "domestic"
         )
         let productB = ComparisonProduct.sample(
             name: "商品B",
             price: 100,
             quantity: 1,
-            unit: .gram
+            unit: .gram,
+            origin: "domestic"
         )
         
         let result = try comparisonEngine.compare(productA, productB)
@@ -77,13 +81,15 @@ final class ComparisonEngineTests: XCTestCase {
             name: "商品A(g)",
             price: 1000,
             quantity: 500,
-            unit: .gram
+            unit: .gram,
+            origin: "domestic"
         )
         let productB = ComparisonProduct.sample(
             name: "商品B(kg)",
             price: 2000,
             quantity: 1,
-            unit: .kilogram
+            unit: .kilogram,
+            origin: "imported"
         )
         
         let result = try comparisonEngine.compare(productA, productB)
@@ -102,7 +108,8 @@ final class ComparisonEngineTests: XCTestCase {
             quantity: 1,
             unit: .gram,
             taxIncluded: false,
-            taxRate: 0.1
+            taxRate: 0.1,
+            origin: "domestic"
         )
         let productB = ComparisonProduct.sample(
             name: "商品B(税込)",
@@ -110,7 +117,8 @@ final class ComparisonEngineTests: XCTestCase {
             quantity: 1,
             unit: .gram,
             taxIncluded: true,
-            taxRate: 0.1
+            taxRate: 0.1,
+            origin: "domestic"
         )
         
         let result = try comparisonEngine.compare(productA, productB)
@@ -127,8 +135,8 @@ final class ComparisonEngineTests: XCTestCase {
     
     func testInvalidProductName() {
         // 商品名エラーテスト
-        let invalidProduct = ComparisonProduct.sample(name: "", price: 100)
-        let validProduct = ComparisonProduct.sample(name: "有効商品", price: 100)
+        let invalidProduct = ComparisonProduct.sample(name: "", price: 100, origin: "domestic")
+        let validProduct = ComparisonProduct.sample(name: "有効商品", price: 100, origin: "domestic")
         
         XCTAssertThrowsError(try comparisonEngine.compare(invalidProduct, validProduct)) { error in
             XCTAssertTrue(error is ComparisonError, "ComparisonErrorが投げられるべき")
@@ -143,8 +151,8 @@ final class ComparisonEngineTests: XCTestCase {
     
     func testInvalidPrice() {
         // 価格エラーテスト
-        let invalidProduct = ComparisonProduct.sample(price: -100)
-        let validProduct = ComparisonProduct.sample(price: 100)
+        let invalidProduct = ComparisonProduct.sample(price: -100, origin: "domestic")
+        let validProduct = ComparisonProduct.sample(price: 100, origin: "domestic")
         
         XCTAssertThrowsError(try comparisonEngine.compare(invalidProduct, validProduct)) { error in
             XCTAssertTrue(error is ComparisonError, "ComparisonErrorが投げられるべき")
@@ -153,8 +161,8 @@ final class ComparisonEngineTests: XCTestCase {
     
     func testIncompatibleUnits() {
         // 単位互換性エラーテスト
-        let productA = ComparisonProduct.sample(unit: .gram)     // 重量
-        let productB = ComparisonProduct.sample(unit: .milliliter) // 容量
+        let productA = ComparisonProduct.sample(unit: .gram, origin: "domestic")     // 重量
+        let productB = ComparisonProduct.sample(unit: .milliliter, origin: "domestic") // 容量
         
         XCTAssertThrowsError(try comparisonEngine.compare(productA, productB)) { error in
             if case .incompatibleUnits(let unitA, let unitB) = error as? ComparisonError {
@@ -168,8 +176,8 @@ final class ComparisonEngineTests: XCTestCase {
     
     func testZeroQuantity() {
         // ゼロ数量エラーテスト
-        let invalidProduct = ComparisonProduct.sample(quantity: 0)
-        let validProduct = ComparisonProduct.sample(quantity: 1)
+        let invalidProduct = ComparisonProduct.sample(quantity: 0, origin: "domestic")
+        let validProduct = ComparisonProduct.sample(quantity: 1, origin: "domestic")
         
         XCTAssertThrowsError(try comparisonEngine.compare(invalidProduct, validProduct)) { error in
             XCTAssertTrue(error is ComparisonError, "ComparisonErrorが投げられるべき")
@@ -184,13 +192,15 @@ final class ComparisonEngineTests: XCTestCase {
             name: "最小商品A",
             price: 0.01,
             quantity: 0.01,
-            unit: .gram
+            unit: .gram,
+            origin: "domestic"
         )
         let productB = ComparisonProduct.sample(
             name: "最小商品B",
             price: 0.02,
             quantity: 0.01,
-            unit: .gram
+            unit: .gram,
+            origin: "domestic"
         )
         
         let result = try comparisonEngine.compare(productA, productB)
@@ -206,13 +216,15 @@ final class ComparisonEngineTests: XCTestCase {
             name: "最大商品A",
             price: 999999.99,
             quantity: 99999.99,
-            unit: .gram
+            unit: .gram,
+            origin: "domestic"
         )
         let productB = ComparisonProduct.sample(
             name: "最大商品B",
             price: 999999.98,
             quantity: 99999.99,
-            unit: .gram
+            unit: .gram,
+            origin: "domestic"
         )
         
         let result = try comparisonEngine.compare(productA, productB)
@@ -222,8 +234,8 @@ final class ComparisonEngineTests: XCTestCase {
     
     func testThresholdBoundary() throws {
         // 閾値境界テスト（1円未満の差）
-        let productA = ComparisonProduct.sample(price: 100.00, quantity: 1)
-        let productB = ComparisonProduct.sample(price: 100.005, quantity: 1) // 0.5円差
+        let productA = ComparisonProduct.sample(price: 100.00, quantity: 1, origin: "domestic")
+        let productB = ComparisonProduct.sample(price: 100.005, quantity: 1, origin: "domestic") // 0.5円差
         
         let result = try comparisonEngine.compare(productA, productB)
         
@@ -234,8 +246,8 @@ final class ComparisonEngineTests: XCTestCase {
     
     func testPerformance() throws {
         // パフォーマンステスト
-        let productA = ComparisonProduct.sample(price: 100, quantity: 1)
-        let productB = ComparisonProduct.sample(price: 150, quantity: 1)
+        let productA = ComparisonProduct.sample(price: 100, quantity: 1, origin: "domestic")
+        let productB = ComparisonProduct.sample(price: 150, quantity: 1, origin: "domestic")
         
         measure {
             for _ in 0..<1000 {
@@ -252,13 +264,15 @@ final class ComparisonEngineTests: XCTestCase {
             name: "精度テストA",
             price: 100.00,
             quantity: 3,
-            unit: .gram
+            unit: .gram,
+            origin: "domestic"
         )
         let productB = ComparisonProduct.sample(
             name: "精度テストB",
             price: 150.00,
             quantity: 4.5,
-            unit: .gram
+            unit: .gram,
+            origin: "domestic"
         )
         
         let result = try comparisonEngine.compare(productA, productB)
@@ -277,13 +291,15 @@ final class ComparisonEngineTests: XCTestCase {
             name: "米（合）",
             price: 180,
             quantity: 1,
-            unit: .gou
+            unit: .gou,
+            origin: "domestic"
         )
         let productB = ComparisonProduct.sample(
             name: "米（カップ）",
             price: 180,
             quantity: 1,
-            unit: .cup
+            unit: .cup,
+            origin: "domestic"
         )
         
         let result = try comparisonEngine.compare(productA, productB)
@@ -300,13 +316,15 @@ final class ComparisonEngineTests: XCTestCase {
             name: "カップ商品",
             price: 180,
             quantity: 1,
-            unit: .cup
+            unit: .cup,
+            origin: "domestic"
         )
         let productB = ComparisonProduct.sample(
             name: "ミリリットル商品",
             price: 360,
             quantity: 180,
-            unit: .milliliter
+            unit: .milliliter,
+            origin: "domestic"
         )
         
         let result = try comparisonEngine.compare(productA, productB)
@@ -323,13 +341,15 @@ final class ComparisonEngineTests: XCTestCase {
             name: "食パン（枚）",
             price: 100,
             quantity: 5,
-            unit: .sheet
+            unit: .sheet,
+            origin: "domestic"
         )
         let productB = ComparisonProduct.sample(
             name: "食パン（個）",
             price: 100,
             quantity: 5,
-            unit: .piece
+            unit: .piece,
+            origin: "domestic"
         )
         
         let result = try comparisonEngine.compare(productA, productB)
@@ -346,13 +366,15 @@ final class ComparisonEngineTests: XCTestCase {
             name: "お刺身（切れ）",
             price: 500,
             quantity: 10,
-            unit: .slice
+            unit: .slice,
+            origin: "imported"
         )
         let productB = ComparisonProduct.sample(
             name: "お刺身（個）",
             price: 250,
             quantity: 5,
-            unit: .piece
+            unit: .piece,
+            origin: "imported"
         )
         
         let result = try comparisonEngine.compare(productA, productB)
@@ -381,6 +403,7 @@ class ComparisonProductBuilder {
     private var unit: Unit = .gram
     private var taxIncluded: Bool = true
     private var taxRate: Decimal = 0.1
+    private var origin: String = "domestic"
     
     func name(_ value: String) -> ComparisonProductBuilder {
         name = value
@@ -412,6 +435,11 @@ class ComparisonProductBuilder {
         return self
     }
     
+    func origin(_ value: String) -> ComparisonProductBuilder {
+        origin = value
+        return self
+    }
+    
     func build() -> ComparisonProduct {
         return ComparisonProduct(
             name: name,
@@ -419,7 +447,8 @@ class ComparisonProductBuilder {
             quantity: quantity,
             unit: unit,
             taxIncluded: taxIncluded,
-            taxRate: taxRate
+            taxRate: taxRate,
+            origin: origin
         )
     }
 }

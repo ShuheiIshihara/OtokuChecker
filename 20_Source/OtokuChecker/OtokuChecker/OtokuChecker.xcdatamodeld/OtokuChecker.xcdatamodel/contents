@@ -57,6 +57,7 @@
         <attribute name="storeLocation" optional="YES" attributeType="String" defaultValueString=""/>
         <attribute name="purchaseDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="memo" optional="YES" attributeType="String" defaultValueString=""/>
+        <attribute name="origin" optional="YES" attributeType="String" defaultValueString="domestic"/>
         <attribute name="deletedFlag" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>

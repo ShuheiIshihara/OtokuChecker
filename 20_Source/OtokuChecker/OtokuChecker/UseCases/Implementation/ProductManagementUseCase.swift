@@ -76,6 +76,7 @@ class ProductManagementUseCase: ProductManagementUseCaseProtocol {
                 quantity: product.quantity,
                 unitType: product.unit.rawValue,
                 storeName: nil, // UIで設定される場合は引数で受け取る
+                origin: product.origin,
                 productGroup: productGroup,
                 category: category
             )

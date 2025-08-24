@@ -435,7 +435,8 @@ struct ContentView: View {
             quantity: productA.quantity,
             unit: productA.unit,
             taxIncluded: true,
-            taxRate: Decimal(0.10)
+            taxRate: Decimal(0.10),
+            origin: "domestic"
         )
         let comparisonProductB = ComparisonProduct(
             name: productB.name,
@@ -443,7 +444,8 @@ struct ContentView: View {
             quantity: productB.quantity,
             unit: productB.unit,
             taxIncluded: true,
-            taxRate: Decimal(0.10)
+            taxRate: Decimal(0.10),
+            origin: "domestic"
         )
         
         let validation = comparisonService.canCompareProducts(comparisonProductA, comparisonProductB)
@@ -519,7 +521,8 @@ struct ContentView: View {
             quantity: productA.quantity,
             unit: productA.unit,
             taxIncluded: true,
-            taxRate: Decimal(0.10)
+            taxRate: Decimal(0.10),
+            origin: "domestic"
         )
         let comparisonProductB = ComparisonProduct(
             name: productB.name,
@@ -527,7 +530,8 @@ struct ContentView: View {
             quantity: productB.quantity,
             unit: productB.unit,
             taxIncluded: true,
-            taxRate: Decimal(0.10)
+            taxRate: Decimal(0.10),
+            origin: "domestic"
         )
         
         let validation = comparisonService.canCompareProducts(comparisonProductA, comparisonProductB)

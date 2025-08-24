@@ -29,6 +29,7 @@ class ImprovedCoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
         quantity: Decimal,
         unitType: String,
         storeName: String?,
+        origin: String?,
         productGroup: ProductGroup?,
         category: ProductCategory?
     ) async throws -> ProductRecord {
@@ -59,6 +60,7 @@ class ImprovedCoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
             record.setValue("", forKey: "storeLocation")
             record.setValue(Date(), forKey: "purchaseDate")
             record.setValue("", forKey: "memo")
+            record.setValue(origin ?? "domestic", forKey: "origin")
             record.setValue(false, forKey: "isDeleted")
             record.setValue(Date(), forKey: "createdAt")
             record.setValue(Date(), forKey: "updatedAt")

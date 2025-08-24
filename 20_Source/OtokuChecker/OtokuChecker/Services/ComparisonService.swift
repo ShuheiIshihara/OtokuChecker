@@ -57,7 +57,8 @@ class ComparisonService {
             quantity: productA.quantity,
             unit: productA.unit,
             taxIncluded: true, // デフォルトで税込
-            taxRate: 0.10 // 10%税率
+            taxRate: 0.10, // 10%税率
+            origin: "domestic"
         )
         
         let comparisonProductB = ComparisonProduct(
@@ -66,7 +67,8 @@ class ComparisonService {
             quantity: productB.quantity,
             unit: productB.unit,
             taxIncluded: true, // デフォルトで税込
-            taxRate: 0.10 // 10%税率
+            taxRate: 0.10, // 10%税率
+            origin: "domestic"
         )
         
         do {
@@ -103,7 +105,8 @@ class ComparisonService {
             quantity: product.quantity,
             unit: product.unit,
             taxIncluded: true,
-            taxRate: 0.10
+            taxRate: 0.10,
+            origin: "domestic"
         )
         return validateProductForComparison(comparisonProduct)
     }
@@ -116,7 +119,8 @@ class ComparisonService {
             quantity: productA.quantity,
             unit: productA.unit,
             taxIncluded: true,
-            taxRate: 0.10
+            taxRate: 0.10,
+            origin: ""
         )
         
         let comparisonProductB = ComparisonProduct(
@@ -125,7 +129,8 @@ class ComparisonService {
             quantity: productB.quantity,
             unit: productB.unit,
             taxIncluded: true,
-            taxRate: 0.10
+            taxRate: 0.10,
+            origin: ""
         )
         
         return canCompareProducts(comparisonProductA, comparisonProductB)

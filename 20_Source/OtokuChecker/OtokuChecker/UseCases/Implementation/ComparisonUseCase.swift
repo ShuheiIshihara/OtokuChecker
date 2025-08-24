@@ -71,7 +71,8 @@ class ComparisonUseCase: ComparisonUseCaseProtocol {
             quantity: historicalRecord.quantity?.decimalValue ?? 0,
             unit: Unit(rawValue: historicalRecord.unitType ?? "個") ?? .piece,
             taxIncluded: true, // デフォルトで税込として扱う
-            taxRate: 0.10 // デフォルトで10%税率
+            taxRate: 0.10, // デフォルトで10%税率
+            origin: historicalRecord.origin
         )
         
         do {

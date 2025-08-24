@@ -28,6 +28,7 @@ extension ProductRecord {
     @NSManaged public var storeLocation: String?
     @NSManaged public var purchaseDate: Date?
     @NSManaged public var memo: String?
+    @NSManaged public var origin: String?
     @NSManaged public var deletedFlag: Bool
     @NSManaged public var createdAt: Date?
     @NSManaged public var updatedAt: Date?

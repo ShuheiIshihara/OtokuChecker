@@ -61,7 +61,8 @@ class MainComparisonViewModel: BaseFormViewModel {
             quantity: quantity,
             unit: productAUnit,
             taxIncluded: true, // デフォルトで税込
-            taxRate: 0.10 // 10%税率
+            taxRate: 0.10, // 10%税率
+            origin: "domestic"
         )
     }
     
@@ -79,7 +80,8 @@ class MainComparisonViewModel: BaseFormViewModel {
             quantity: quantity,
             unit: productBUnit,
             taxIncluded: true, // デフォルトで税込
-            taxRate: 0.10 // 10%税率
+            taxRate: 0.10, // 10%税率
+            origin: "domestic"
         )
     }
     

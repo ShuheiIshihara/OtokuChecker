@@ -12,6 +12,15 @@ import Combine
 @MainActor
 class DataEntryViewModel: BaseFormViewModel {
     
+    // MARK: - Supporting Types
+    enum TaxType {
+        case inclusive, exclusive
+    }
+    
+    enum OriginType {
+        case domestic, imported
+    }
+    
     // MARK: - Dependencies
     
     private let productManagementUseCase: any ProductManagementUseCaseProtocol
@@ -20,15 +29,23 @@ class DataEntryViewModel: BaseFormViewModel {
     // MARK: - Published Properties - Product Data
     
     @Published var productName: String = ""
+    @Published var productType: String = ""
+    @Published var selectedCategory: String = ""
     @Published var price: String = ""
+    @Published var taxType: TaxType = .exclusive
+    @Published var taxRate: String = "10"
     @Published var quantity: String = ""
-    @Published var unit: Unit = .gram
+    @Published var selectedUnit: String = ""
+    @Published var origin: OriginType = .domestic
     @Published var storeName: String = ""
+    @Published var registrationDate: Date = Date()
+    @Published var memo: String = ""
+    @Published var unit: Unit = .gram
     @Published var notes: String = ""
     
     // MARK: - Published Properties - Category
     
-    @Published var selectedCategory: ProductCategory?
+    @Published var selectedCategoryObject: ProductCategory?
     @Published var availableCategories: [ProductCategory] = []
     @Published var showingCategoryPicker: Bool = false
     @Published var suggestedCategories: [ProductCategory] = []
@@ -53,6 +70,40 @@ class DataEntryViewModel: BaseFormViewModel {
         isValid && !isLoading
     }
     
+    var isFormValid: Bool {
+        !productName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !price.isEmpty &&
+        !quantity.isEmpty &&
+        !selectedUnit.isEmpty &&
+        Decimal(string: price) != nil &&
+        Decimal(string: quantity) != nil &&
+        memo.count <= 500
+    }
+    
+    var unitPrice: String {
+        guard let priceValue = Decimal(string: price),
+              let quantityValue = Decimal(string: quantity),
+              quantityValue > 0 else {
+            return "- 円 /単位"
+        }
+        
+        let finalPrice: Decimal
+        if taxType == .exclusive {
+            let taxRateValue = Decimal(string: taxRate) ?? 10
+            finalPrice = priceValue * (1 + taxRateValue / 100)
+        } else {
+            finalPrice = priceValue
+        }
+        
+        let unitPriceValue = finalPrice / quantityValue
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        
+        let formattedPrice = formatter.string(from: NSDecimalNumber(decimal: unitPriceValue)) ?? "0"
+        return "\(formattedPrice) 円 /\(selectedUnit)"
+    }
+    
     var productPreview: ComparisonProduct? {
         guard let priceValue = Decimal(string: price),
               let quantityValue = Decimal(string: quantity),
@@ -66,7 +117,8 @@ class DataEntryViewModel: BaseFormViewModel {
             quantity: quantityValue,
             unit: unit,
             taxIncluded: true, // デフォルトで税込
-            taxRate: 0.10 // 10%税率
+            taxRate: 0.10, // 10%税率
+            origin: origin == .domestic ? "domestic" : "imported"
         )
     }
     
@@ -75,6 +127,17 @@ class DataEntryViewModel: BaseFormViewModel {
     }
     
     // MARK: - Initialization
+    
+    convenience override init() {
+        let container = DIContainer.shared
+        let productUseCase = container.getProductManagementUseCase()
+        let categoryUseCase = container.getCategoryManagementUseCase()
+        
+        self.init(
+            productManagementUseCase: productUseCase,
+            categoryManagementUseCase: categoryUseCase
+        )
+    }
     
     init(
         productManagementUseCase: any ProductManagementUseCaseProtocol,
@@ -114,10 +177,13 @@ class DataEntryViewModel: BaseFormViewModel {
         productName = product.productName ?? ""
         price = product.originalPrice?.description ?? ""
         quantity = product.quantity?.description ?? ""
+        selectedUnit = product.unitType ?? ""
         unit = Unit(rawValue: product.unitType ?? "gram") ?? .gram
         storeName = product.storeName ?? ""
+        memo = product.memo ?? ""
         notes = product.memo ?? ""
-        selectedCategory = product.category
+        origin = (product.origin ?? "domestic") == "domestic" ? .domestic : .imported
+        selectedCategoryObject = product.category
         
         markAsClean()
         validateForm()
@@ -138,14 +204,47 @@ class DataEntryViewModel: BaseFormViewModel {
         showingDiscardAlert = false
     }
     
+    func registerProduct() {
+        guard isFormValid else { return }
+        
+        executeVoidTask {
+            do {
+                let product = ComparisonProduct(
+                    name: self.productName,
+                    price: Decimal(string: self.price) ?? 0,
+                    quantity: Decimal(string: self.quantity) ?? 0,
+                    unit: Unit(rawValue: self.selectedUnit) ?? .gram,
+                    taxIncluded: self.taxType == .inclusive,
+                    taxRate: (Decimal(string: self.taxRate) ?? 10) / 100,
+                    origin: self.origin == .domestic ? "domestic" : "imported"
+                )
+                
+                _ = try await self.productManagementUseCase.saveProduct(product, category: self.selectedCategoryObject)
+                
+                self.showingSaveConfirmation = true
+                self.resetForm()
+            } catch {
+                // エラーハンドリング
+            }
+        }
+    }
+    
     override func resetForm() {
         productName = ""
+        productType = ""
+        selectedCategory = ""
         price = ""
+        taxType = .exclusive
+        taxRate = "10"
         quantity = ""
-        unit = .gram
+        selectedUnit = ""
+        origin = .domestic
         storeName = ""
+        registrationDate = Date()
+        memo = ""
+        unit = .gram
         notes = ""
-        selectedCategory = nil
+        selectedCategoryObject = nil
         
         hideAllSuggestions()
         clearValidationErrors()
@@ -155,13 +254,13 @@ class DataEntryViewModel: BaseFormViewModel {
     // MARK: - Public Methods - Category Management
     
     func selectCategory(_ category: ProductCategory) {
-        selectedCategory = category
+        selectedCategoryObject = category
         showingCategoryPicker = false
         markAsDirty()
     }
     
     func clearCategory() {
-        selectedCategory = nil
+        selectedCategoryObject = nil
         markAsDirty()
     }
     
@@ -195,9 +294,12 @@ class DataEntryViewModel: BaseFormViewModel {
         productName = product.productName ?? ""
         price = product.originalPrice?.description ?? ""
         quantity = product.quantity?.description ?? ""
+        selectedUnit = product.unitType ?? ""
         unit = Unit(rawValue: product.unitType ?? "gram") ?? .gram
         storeName = product.storeName ?? ""
-        selectedCategory = product.category
+        memo = product.memo ?? ""
+        origin = (product.origin ?? "domestic") == "domestic" ? .domestic : .imported
+        selectedCategoryObject = product.category
         
         hideAllSuggestions()
         markAsDirty()
@@ -315,7 +417,7 @@ class DataEntryViewModel: BaseFormViewModel {
     
     private func createNewProduct(_ product: ComparisonProduct) async {
         do {
-            _ = try await productManagementUseCase.saveProduct(product, category: selectedCategory)
+            _ = try await productManagementUseCase.saveProduct(product, category: selectedCategoryObject)
         } catch {
             // Handle error - could set an error state here
         }
@@ -329,8 +431,9 @@ class DataEntryViewModel: BaseFormViewModel {
         existingProduct.quantity = NSDecimalNumber(decimal: product.quantity)
         existingProduct.unitType = product.unit.rawValue
         existingProduct.storeName = storeName.isEmpty ? nil : storeName
-        existingProduct.memo = notes.isEmpty ? nil : notes
-        existingProduct.category = selectedCategory
+        existingProduct.memo = memo.isEmpty ? nil : memo
+        existingProduct.origin = origin == .domestic ? "domestic" : "imported"
+        existingProduct.category = selectedCategoryObject
         
         do {
             _ = try await productManagementUseCase.updateProductGroup(existingProduct.productGroup!)

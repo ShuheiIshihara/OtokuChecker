@@ -28,6 +28,7 @@ class CoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
         quantity: Decimal,
         unitType: String,
         storeName: String?,
+        origin: String?,
         productGroup: ProductGroup?,
         category: ProductCategory?
     ) async throws -> ProductRecord {
@@ -48,6 +49,7 @@ class CoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
                     record.setValue("", forKey: "storeLocation")
                     record.setValue(Date(), forKey: "purchaseDate")
                     record.setValue("", forKey: "memo")
+                    record.setValue(origin ?? "domestic", forKey: "origin")
                     record.setValue(false, forKey: "isDeleted")
                     record.setValue(Date(), forKey: "createdAt")
                     record.setValue(Date(), forKey: "updatedAt")
@@ -356,6 +358,7 @@ extension CoreDataProductRecordRepository {
         quantity: Decimal,
         unitType: String,
         storeName: String?,
+        origin: String? = nil,
         storeLocation: String? = nil,
         purchaseDate: Date? = nil,
         memo: String? = nil,
@@ -370,6 +373,7 @@ extension CoreDataProductRecordRepository {
             quantity: quantity,
             unitType: unitType,
             storeName: storeName,
+            origin: origin ?? "domestic",
             productGroup: productGroup,
             category: category
         )

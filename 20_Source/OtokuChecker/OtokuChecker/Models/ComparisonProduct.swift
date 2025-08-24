@@ -16,6 +16,7 @@ struct ComparisonProduct {
     let unit: Unit               // 単位（enum）
     let taxIncluded: Bool        // 税込/税別フラグ
     let taxRate: Decimal         // 税率（0.00-1.00）
+    let origin: String?          // 原産地（"domestic" or "imported"）
     
     /// 税込価格を計算
     var finalPrice: Decimal {
@@ -98,14 +99,15 @@ struct ComparisonProduct {
 
 extension ComparisonProduct {
     /// 既存のProduct構造体から変換
-    static func from(_ product: Product, taxIncluded: Bool = true, taxRate: Decimal = 0.1) -> ComparisonProduct {
+    static func from(_ product: Product, taxIncluded: Bool = true, taxRate: Decimal = 0.1, origin: String? = nil) -> ComparisonProduct {
         return ComparisonProduct(
             name: product.name,
             price: product.price,
             quantity: product.quantity,
             unit: product.unit,
             taxIncluded: taxIncluded,
-            taxRate: taxRate
+            taxRate: taxRate,
+            origin: origin
         )
     }
     
@@ -116,7 +118,8 @@ extension ComparisonProduct {
         quantity: Decimal = 1,
         unit: Unit = .gram,
         taxIncluded: Bool = true,
-        taxRate: Decimal = 0.1
+        taxRate: Decimal = 0.1,
+        origin: String? = nil
     ) -> ComparisonProduct {
         return ComparisonProduct(
             name: name,
@@ -124,7 +127,8 @@ extension ComparisonProduct {
             quantity: quantity,
             unit: unit,
             taxIncluded: taxIncluded,
-            taxRate: taxRate
+            taxRate: taxRate,
+            origin: origin
         )
     }
 }
@@ -177,7 +181,7 @@ extension ComparisonProduct {
 
 extension ComparisonProduct: Equatable, Identifiable {
     var id: String {
-        return "\(name)-\(price)-\(quantity)-\(unit.rawValue)-\(taxIncluded)-\(taxRate)"
+        return "\(name)-\(price)-\(quantity)-\(unit.rawValue)-\(taxIncluded)-\(taxRate)-\(origin ?? "")"
     }
     
     static func == (lhs: ComparisonProduct, rhs: ComparisonProduct) -> Bool {
@@ -186,6 +190,7 @@ extension ComparisonProduct: Equatable, Identifiable {
                lhs.quantity == rhs.quantity &&
                lhs.unit == rhs.unit &&
                lhs.taxIncluded == rhs.taxIncluded &&
-               lhs.taxRate == rhs.taxRate
+               lhs.taxRate == rhs.taxRate &&
+               lhs.origin == rhs.origin
     }
 }
