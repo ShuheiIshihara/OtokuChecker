@@ -128,7 +128,7 @@ struct HistorySelectionView: View {
     /// ProductRecordをHistoryProductに変換
     private func convertToHistoryProduct(_ record: ProductRecord) -> HistoryProduct {
         return HistoryProduct(
-            id: record.entityID ?? UUID(),
+            id: record.entityID,
             productName: record.productName ?? "",
             price: record.finalPrice?.decimalValue ?? record.originalPrice?.decimalValue ?? 0,
             quantity: record.quantity?.decimalValue ?? 0,

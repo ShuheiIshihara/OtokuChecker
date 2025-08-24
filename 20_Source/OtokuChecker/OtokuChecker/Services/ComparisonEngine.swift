@@ -68,21 +68,28 @@ class ComparisonEngine {
         let unitPriceB = try calculateUnitPrice(price: finalPriceB, quantity: baseQuantityB, context: "商品B")
         calculationSteps.append(createCalculationStep(5, "単価計算", "高精度計算", "完了"))
         
-        // 6. 比較判定
-        let comparisonResult = performComparison(unitPriceA: unitPriceA, unitPriceB: unitPriceB)
-        calculationSteps.append(createCalculationStep(6, "比較判定", "勝者決定", comparisonResult.winner.displayText))
+        // 6. 表示用単位の決定と単価統一
+        let displayUnit = Unit.getLargerUnit(productA.unit, productB.unit)
+        let displayUnitPriceA = productA.unit.convertValue(finalPriceA / productA.quantity, to: displayUnit)
+        let displayUnitPriceB = productB.unit.convertValue(finalPriceB / productB.quantity, to: displayUnit)
+        calculationSteps.append(createCalculationStep(6, "表示用単位統一", "\(displayUnit.rawValue)単位", "完了"))
         
-        // 7. 詳細情報作成
+        // 7. 比較判定
+        let comparisonResult = performComparison(unitPriceA: displayUnitPriceA, unitPriceB: displayUnitPriceB)
+        calculationSteps.append(createCalculationStep(7, "比較判定", "勝者決定", comparisonResult.winner.displayText))
+        
+        // 8. 詳細情報作成
         let comparisonDetails = createComparisonDetails(
             productA: productA,
             productB: productB,
-            unitPriceA: unitPriceA,
-            unitPriceB: unitPriceB,
+            unitPriceA: displayUnitPriceA,
+            unitPriceB: displayUnitPriceB,
             finalPriceA: finalPriceA,
             finalPriceB: finalPriceB,
             baseQuantityA: baseQuantityA,
             baseQuantityB: baseQuantityB,
-            comparisonResult: comparisonResult
+            comparisonResult: comparisonResult,
+            displayUnit: displayUnit
         )
         
         // 8. 推奨事項生成
@@ -229,7 +236,8 @@ class ComparisonEngine {
         finalPriceB: Decimal,
         baseQuantityA: Decimal,
         baseQuantityB: Decimal,
-        comparisonResult: (winner: ExtendedComparisonResult.Winner, priceDifference: Decimal, percentageDifference: Decimal)
+        comparisonResult: (winner: ExtendedComparisonResult.Winner, priceDifference: Decimal, percentageDifference: Decimal),
+        displayUnit: Unit
     ) -> ComparisonDetails {
         
         return ComparisonDetails(
@@ -246,7 +254,8 @@ class ComparisonEngine {
             conversionFactorA: productA.unit.baseUnitConversionFactor,
             conversionFactorB: productB.unit.baseUnitConversionFactor,
             threshold: Self.priceThreshold,
-            isTie: comparisonResult.winner == .tie
+            isTie: comparisonResult.winner == .tie,
+            displayUnit: displayUnit
         )
     }
     

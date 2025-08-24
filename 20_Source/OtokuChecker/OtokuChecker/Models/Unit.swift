@@ -89,6 +89,34 @@ enum Unit: String, CaseIterable {
         case .count: return "個"
         }
     }
+    
+    // 2つの単位のうち大きい方を返す
+    static func getLargerUnit(_ unit1: Unit, _ unit2: Unit) -> Unit {
+        guard unit1.category == unit2.category else {
+            return unit1 // 異なるカテゴリの場合は最初の単位を返す
+        }
+        
+        return unit1.baseUnitConversionFactor >= unit2.baseUnitConversionFactor ? unit1 : unit2
+    }
+    
+    // この単位から他の単位への変換
+    func convertValue(_ value: Decimal, to targetUnit: Unit) -> Decimal {
+        guard self.category == targetUnit.category else {
+            return value // 異なるカテゴリの場合は変換しない
+        }
+        
+        // 基本単位経由で変換
+        let baseValue = value * self.baseUnitConversionFactor
+        return baseValue / targetUnit.baseUnitConversionFactor
+    }
+    
+    // この単位が他の単位より大きいかどうか
+    func isLargerThan(_ other: Unit) -> Bool {
+        guard self.category == other.category else {
+            return false
+        }
+        return self.baseUnitConversionFactor > other.baseUnitConversionFactor
+    }
 }
 
 enum UnitCategory: String, CaseIterable {

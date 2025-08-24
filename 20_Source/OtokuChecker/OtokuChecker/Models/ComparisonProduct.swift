@@ -42,11 +42,9 @@ struct ComparisonProduct {
     func validateInput() -> [ComparisonValidationError] {
         var errors: [ComparisonValidationError] = []
         
-        // 商品名検証
+        // 商品名検証（空でも可）
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmedName.isEmpty {
-            errors.append(.emptyProductName("商品"))
-        } else if trimmedName.count > 100 {
+        if trimmedName.count > 100 {
             errors.append(.productNameTooLong("商品", trimmedName.count))
         }
         

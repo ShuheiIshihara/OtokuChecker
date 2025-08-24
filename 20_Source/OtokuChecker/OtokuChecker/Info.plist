@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>お得チェッカー</string>
+	<string>おとくのおとも</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>価格データの保護のため、Face IDによる認証を使用します</string>
 	<key>NSPersistentStoreFileProtectionKey</key>

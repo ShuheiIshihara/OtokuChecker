@@ -17,6 +17,7 @@ struct OtokuCheckerApp: App {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .diContainer(diContainer)
+                .preferredColorScheme(.light)
         }
     }
 }

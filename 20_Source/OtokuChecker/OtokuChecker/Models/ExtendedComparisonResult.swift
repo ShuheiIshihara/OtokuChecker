@@ -85,6 +85,7 @@ struct ComparisonDetails {
     // 判定情報
     let threshold: Decimal
     let isTie: Bool
+    let displayUnit: Unit
     
     /// フォーマットされた価格差表示
     var formattedPriceDifference: String {
@@ -100,7 +101,7 @@ struct ComparisonDetails {
         let percentNumber = NSDecimalNumber(decimal: percentageDifference)
         let percentString = formatter.string(from: percentNumber) ?? "0"
         
-        return "\(diffString)円の差 (\(percentString)%お得)"
+        return "\(diffString)円/\(displayUnit.rawValue)の差 (\(percentString)%お得)"
     }
     
     /// 詳細な比較レポート

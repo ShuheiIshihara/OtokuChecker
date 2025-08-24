@@ -33,47 +33,56 @@ struct ContentView: View {
 
     var body: some View {
         NavigationView {
-            GeometryReader { geometry in
+            ZStack {
+                Color(red: 0.98, green: 0.92, blue: 1.0)
+                    .ignoresSafeArea()
+                
                 ScrollView {
-                    if isLandscape {
-                        landscapeLayout
-                            .frame(minWidth: geometry.size.width)
-                    } else {
-                        portraitLayout
-                            .frame(minWidth: geometry.size.width)
-                    }
-                }
-                .navigationTitle("お得チェッカー")
-                .navigationBarTitleDisplayMode(isLandscape ? .inline : .large)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button(action: {
-                            // TODO: 履歴画面への遷移
-                        }) {
-                            Image(systemName: "list.clipboard")
-                                .foregroundColor(AppColors.primary)
+                    VStack(spacing: 20) {
+                        // ヘッダー部分
+                        headerView
+                        
+                        // 商品A入力エリア
+                        ProductInputCard(
+                            title: "商品A",
+                            icon: "🏪",
+                            product: $productA,
+                            backgroundColor: Color.white,
+                            onHistoryTap: {
+                                // TODO: 履歴参照機能を実装
+                            }
+                        )
+                        
+                        // 商品B入力エリア
+                        ProductInputCard(
+                            title: "商品B",
+                            icon: "🛒",
+                            product: $productB,
+                            backgroundColor: Color.white,
+                            onHistoryTap: {
+                                // TODO: 履歴参照機能を実装
+                            }
+                        )
+                        
+                        // 比較ボタン
+                        comparisonButton
+                        
+                        // 比較結果
+                        if comparisonResult != nil {
+                            comparisonResultCard
                         }
-                        .accessibilityLabel("履歴")
-                        .accessibilityHint("過去の比較履歴を確認します")
+                        
+                        Spacer(minLength: 300)
                     }
-                    
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            // TODO: 設定画面への遷移
-                        }) {
-                            Image(systemName: "gear")
-                                .foregroundColor(AppColors.primary)
-                        }
-                        .accessibilityLabel("設定")
-                        .accessibilityHint("アプリの設定を変更します")
-                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
                 }
             }
+            .navigationBarTitleDisplayMode(.inline)
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .alert("比較エラー", isPresented: $showingErrorAlert) {
             Button("確認") {
-                // エラークリア時に結果をリセット
                 comparisonResult = nil
             }
         } message: {
@@ -81,124 +90,312 @@ struct ContentView: View {
                 Text(errorMessage ?? "予期しないエラーが発生しました")
                 Text("商品情報を確認して、再度お試しください。")
                     .font(.caption)
-                    .foregroundColor(AppColors.secondaryText)
+                    .foregroundColor(.secondary)
             }
         }
     }
     
-    // 縦向きレイアウト
-    private var portraitLayout: some View {
-        VStack(spacing: 20) {
-            productInputsView
-            actionButtonsView
-            Divider()
-            comparisonResultView
-            Spacer(minLength: 50)
-        }
-        .padding()
-    }
-    
-    // 横向きレイアウト（商品並列+下部結果）
-    private var landscapeLayout: some View {
-        VStack(spacing: 16) {
-            // 商品入力を横並びで表示
-            HStack(alignment: .top, spacing: 16) {
-                // 商品A
-                ProductInputView(
-                    title: "商品A",
-                    icon: "🏪",
-                    product: $productA,
-                    onHistoryTap: {
-                        // TODO: 履歴参照機能を実装
-                    }
-                )
-                .frame(maxWidth: .infinity)
+    // ヘッダービュー
+    private var headerView: some View {
+        HStack {
+            Text("おとくのおとも")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+            
+            Spacer()
+            
+            HStack(spacing: 12) {
+                // 統計ボタン
+                Button(action: {
+                    // TODO: 統計画面への遷移
+                }) {
+                    Circle()
+                        .fill(Color(red: 0.95, green: 0.9, blue: 1.0))
+                        .frame(width: 44, height: 44)
+                        .overlay(
+                            Image(systemName: "chart.bar.fill")
+                                .foregroundColor(Color(red: 0.8, green: 0.4, blue: 1.0))
+                        )
+                }
+                .accessibilityLabel("統計")
                 
-                // 商品B
-                ProductInputView(
-                    title: "商品B",
-                    icon: "🛒",
-                    product: $productB,
-                    onHistoryTap: {
-                        // TODO: 履歴参照機能を実装
-                    }
-                )
-                .frame(maxWidth: .infinity)
-            }
-            
-            // 比較ボタン（中央配置）
-            HStack {
-                Spacer()
-                Button(action: performComparison) {
-                    HStack {
-                        Image(systemName: "lightbulb")
-                        Text("比較する")
-                    }
+                // 設定ボタン
+                Button(action: {
+                    // TODO: 設定画面への遷移
+                }) {
+                    Circle()
+                        .fill(Color(red: 0.85, green: 0.85, blue: 1.0))
+                        .frame(width: 44, height: 44)
+                        .overlay(
+                            Image(systemName: "gearshape.fill")
+                                .foregroundColor(Color(red: 0.5, green: 0.4, blue: 1.0))
+                        )
                 }
-                .primaryButtonStyle(isEnabled: canPerformComparison)
-                .disabled(!canPerformComparison)
-                .padding(.horizontal, 40)
-                Spacer()
+                .accessibilityLabel("設定")
             }
-            
-            // 区切り線
-            Divider()
-            
-            // 比較結果（下部表示）
-            comparisonResultView
-            
-            Spacer(minLength: 20)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.horizontal, 4)
     }
     
-    // 商品入力セクション
-    private var productInputsView: some View {
-        VStack(spacing: isLandscape ? 12 : 20) {
-            ProductInputView(
-                title: "商品A",
-                icon: "🏪",
-                product: $productA,
-                onHistoryTap: {
-                    // TODO: 履歴参照機能を実装
-                }
-            )
-            
-            ProductInputView(
-                title: "商品B",
-                icon: "🛒",
-                product: $productB,
-                onHistoryTap: {
-                    // TODO: 履歴参照機能を実装
-                }
-            )
-        }
-    }
-    
-    // アクションボタンセクション
-    private var actionButtonsView: some View {
-        Button(action: performComparison) {
-            HStack {
-                Image(systemName: "lightbulb")
+    // 比較ボタン
+    private var comparisonButton: some View {
+        Button(action: {
+            // キーボードを下げる
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            // 比較処理を実行
+            performComparison()
+        }) {
+            HStack(spacing: 8) {
+                Image(systemName: "lightbulb.fill")
+                    .foregroundColor(.white)
                 Text("比較する")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
             }
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(red: 0.9, green: 0.3, blue: 0.8),
+                        Color(red: 0.6, green: 0.3, blue: 0.9)
+                    ]),
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .cornerRadius(16)
+            .shadow(color: Color(red: 0.7, green: 0.3, blue: 0.8).opacity(0.3), radius: 8, x: 0, y: 4)
         }
-        .primaryButtonStyle(isEnabled: canPerformComparison)
         .disabled(!canPerformComparison)
-        .padding(isLandscape ? 12 : 16)
+        .opacity(canPerformComparison ? 1.0 : 0.6)
     }
     
-    // 比較結果セクション
-    private var comparisonResultView: some View {
-        ComparisonResultView(
-            result: comparisonResult,
-            onSaveProductA: {
-                // TODO: 商品A保存機能を実装
-            },
-            onSaveProductB: {
-                // TODO: 商品B保存機能を実装
+    // 比較結果カード
+    private var comparisonResultCard: some View {
+        VStack(spacing: 20) {
+            resultHeader
+            
+            if let result = comparisonResult {
+                resultContent(for: result)
             }
+        }
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 2)
+    }
+    
+    // 結果ヘッダー
+    private var resultHeader: some View {
+        HStack {
+            Circle()
+                .fill(Color.yellow.opacity(0.8))
+                .frame(width: 32, height: 32)
+                .overlay(
+                    Image(systemName: "lightbulb.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.orange)
+                )
+            
+            Text("比較結果")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            Spacer()
+        }
+    }
+    
+    // 結果コンテンツ
+    private func resultContent(for result: ComparisonResult) -> some View {
+        VStack(spacing: 16) {
+            winnerHeader(for: result)
+            priceDetails(for: result)
+            saveButtons(for: result)
+        }
+    }
+    
+    // 勝者ヘッダー
+    private func winnerHeader(for result: ComparisonResult) -> some View {
+        HStack {
+            Circle()
+                .fill(Color.yellow.opacity(0.8))
+                .frame(width: 32, height: 32)
+                .overlay(
+                    Image(systemName: "trophy.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.orange)
+                )
+            
+            Text(winnerText(for: result))
+                .font(.title2)
+                .fontWeight(.bold)
+            
+            Spacer()
+        }
+    }
+    
+    // 価格詳細
+    private func priceDetails(for result: ComparisonResult) -> some View {
+        VStack(spacing: 12) {
+            productARow(for: result)
+            productBRow(for: result)
+            
+            if result.winner != .tie {
+                differenceRow(for: result)
+            }
+        }
+    }
+    
+    // 商品A価格行
+    private func productARow(for result: ComparisonResult) -> some View {
+        let displayUnit = Unit.getLargerUnit(result.productA.unit, result.productB.unit)
+        let unitPriceA = result.productA.unit.convertValue(result.productA.price / result.productA.quantity, to: displayUnit)
+        
+        return HStack {
+            Text(getProductDisplayName(result.productA, defaultName: "商品A") + ":")
+                .fontWeight(.medium)
+            Spacer()
+            Text(formatDisplayUnitPrice(unitPriceA, displayUnit.rawValue))
+                .fontWeight(.semibold)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(8)
+    }
+    
+    // 商品B価格行
+    private func productBRow(for result: ComparisonResult) -> some View {
+        let displayUnit = Unit.getLargerUnit(result.productA.unit, result.productB.unit)
+        let unitPriceB = result.productB.unit.convertValue(result.productB.price / result.productB.quantity, to: displayUnit)
+        
+        return HStack {
+            Text(getProductDisplayName(result.productB, defaultName: "商品B") + ":")
+                .fontWeight(.medium)
+            Spacer()
+            Text(formatDisplayUnitPrice(unitPriceB, displayUnit.rawValue))
+                .fontWeight(.semibold)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(8)
+    }
+    
+    // 差額表示行
+    private func differenceRow(for result: ComparisonResult) -> some View {
+        let displayUnit = Unit.getLargerUnit(result.productA.unit, result.productB.unit)
+        
+        return HStack {
+            Image(systemName: "arrow.right")
+                .foregroundColor(.green)
+            Text("\(formatPrice(abs(result.priceDifference)))/\(displayUnit.rawValue)の差 (\(String(format: "%.1f", Double(truncating: abs(result.percentageDifference) as NSDecimalNumber)))%お得)")
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(.green)
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.green.opacity(0.1))
+        .cornerRadius(8)
+    }
+    
+    // 保存ボタン
+    private func saveButtons(for result: ComparisonResult) -> some View {
+        HStack(spacing: 12) {
+            if result.winner == .tie {
+                // 同じ値段の場合は両方とも目立つ色にする
+                saveButtonA(for: result, isWinner: true)
+                saveButtonB(for: result, isWinner: true)
+            } else {
+                saveButtonA(for: result, isWinner: result.winner == .productA)
+                saveButtonB(for: result, isWinner: result.winner == .productB)
+            }
+        }
+    }
+    
+    // 商品A保存ボタン
+    private func saveButtonA(for result: ComparisonResult, isWinner: Bool) -> some View {
+        let productName = getProductDisplayName(result.productA, defaultName: "商品A")
+        let textColor: Color = isWinner ? .white : .gray
+        let backgroundColor = isWinner ? saveButtonGradient : AnyView(Color.gray.opacity(0.2))
+        
+        return Button(action: {
+            // TODO: 商品A保存機能を実装
+        }) {
+            HStack {
+                Image(systemName: "square.and.arrow.down")
+                    .foregroundColor(textColor)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(productName)を")
+                        .font(.caption)
+                        .foregroundColor(textColor)
+                    Text("保存")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(textColor)
+                }
+                if isWinner {
+                    Image(systemName: "star.fill")
+                        .foregroundColor(.yellow)
+                        .font(.system(size: 12))
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(backgroundColor)
+            .cornerRadius(12)
+        }
+    }
+    
+    // 商品B保存ボタン
+    private func saveButtonB(for result: ComparisonResult, isWinner: Bool) -> some View {
+        let productName = getProductDisplayName(result.productB, defaultName: "商品B")
+        let textColor: Color = isWinner ? .white : .gray
+        let backgroundColor = isWinner ? saveButtonGradient : AnyView(Color.gray.opacity(0.2))
+        
+        return Button(action: {
+            // TODO: 商品B保存機能を実装
+        }) {
+            HStack {
+                Image(systemName: "square.and.arrow.down")
+                    .foregroundColor(textColor)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(productName)を")
+                        .font(.caption)
+                        .foregroundColor(textColor)
+                    Text("保存")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(textColor)
+                }
+                if isWinner {
+                    Image(systemName: "star.fill")
+                        .foregroundColor(.yellow)
+                        .font(.system(size: 12))
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(backgroundColor)
+            .cornerRadius(12)
+        }
+    }
+    
+    // 保存ボタンのグラデーション
+    private var saveButtonGradient: AnyView {
+        AnyView(
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.9, green: 0.3, blue: 0.8),
+                    Color(red: 0.6, green: 0.3, blue: 0.9)
+                ]),
+                startPoint: .leading,
+                endPoint: .trailing
+            )
         )
     }
     
@@ -232,10 +429,8 @@ struct ContentView: View {
             return "価格が正しく入力されていません。数字で入力してください。"
         } else if error.contains("quantity") || error.contains("数量") {
             return "数量が正しく入力されていません。0より大きい数字で入力してください。"
-        } else if error.contains("name") || error.contains("商品名") {
-            return "商品名が入力されていません。比較する商品の名前を入力してください。"
         } else {
-            return "入力内容を確認してください。すべての項目を正しく入力する必要があります。"
+            return "入力内容を確認してください。価格と数量を正しく入力する必要があります。"
         }
     }
     
@@ -246,11 +441,47 @@ struct ContentView: View {
         return !productA.name.isEmpty || !productB.name.isEmpty
     }
     
+    /// 勝者テキストを生成
+    private func winnerText(for result: ComparisonResult) -> String {
+        switch result.winner {
+        case .productA:
+            return getProductDisplayName(result.productA, defaultName: "商品A") + "がお得！"
+        case .productB:
+            return getProductDisplayName(result.productB, defaultName: "商品B") + "がお得！"
+        case .tie:
+            return "同じお得度です"
+        }
+    }
+    
+    /// 商品の表示名を取得（空の場合はデフォルト名を使用）
+    private func getProductDisplayName(_ product: Product, defaultName: String) -> String {
+        let trimmedName = product.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmedName.isEmpty ? defaultName : trimmedName
+    }
+    
+    /// 単位価格をフォーマット
+    private func formatUnitPrice(_ price: Decimal, _ quantity: Decimal, _ unit: String) -> String {
+        let unitPrice = price / quantity
+        return "\(formatPrice(unitPrice))/\(unit)"
+    }
+    
+    /// 表示用単位価格をフォーマット
+    private func formatDisplayUnitPrice(_ unitPrice: Decimal, _ unit: String) -> String {
+        return "\(formatPrice(unitPrice))/\(unit)"
+    }
+    
+    /// 価格をフォーマット
+    private func formatPrice(_ price: Decimal) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 1
+        formatter.minimumFractionDigits = 0
+        let nsDecimal = price as NSDecimalNumber
+        return "\(formatter.string(from: nsDecimal) ?? "0")円"
+    }
+    
     private func performComparison() {
-        // 結果をクリアしてから比較開始
         comparisonResult = nil
-        
-        // 履歴選択の状態を更新
         hasHistorySelection = checkForHistorySelection()
         
         let comparisonProductA = ComparisonProduct(
@@ -273,7 +504,6 @@ struct ContentView: View {
         let validation = comparisonService.canCompareProducts(comparisonProductA, comparisonProductB)
         
         guard validation.canCompare else {
-            // ユーザーフレンドリーなエラーメッセージに変換
             errorMessage = convertToUserFriendlyMessage(validation.reason ?? "比較できません")
             comparisonResult = nil
             showingErrorAlert = true
@@ -282,7 +512,6 @@ struct ContentView: View {
         
         do {
             let result = try comparisonService.compare(productA: comparisonProductA, productB: comparisonProductB)
-            // Convert ExtendedComparisonResult to ComparisonResult for compatibility
             let winner: ComparisonResult.Winner = {
                 switch result.winner {
                 case .productA: return .productA
@@ -299,7 +528,6 @@ struct ContentView: View {
                 percentageDifference: result.comparisonDetails.percentageDifference
             )
             
-            // 正常な比較が完了した場合、エラー状態をクリア
             if showingErrorAlert {
                 showingErrorAlert = false
             }
