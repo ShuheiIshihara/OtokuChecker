@@ -73,7 +73,7 @@ class CoreDataComparisonHistoryRepository: ComparisonHistoryRepositoryProtocol {
                     history.setValue(false, forKey: "wasDataSaved")
                     
                     // システム情報
-                    history.setValue(false, forKey: "isDeleted")
+                    history.setValue(false, forKey: "deletedFlag")
                     history.setValue(Date(), forKey: "createdAt")
                     
                     try self.context.save()
@@ -90,7 +90,7 @@ class CoreDataComparisonHistoryRepository: ComparisonHistoryRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ComparisonHistory>(entityName: "ComparisonHistory")
-                    request.predicate = NSPredicate(format: "isDeleted == NO")
+                    request.predicate = NSPredicate(format: "deletedFlag == NO")
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ComparisonHistory.createdAt, ascending: false)
                     ]
@@ -109,7 +109,7 @@ class CoreDataComparisonHistoryRepository: ComparisonHistoryRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ComparisonHistory>(entityName: "ComparisonHistory")
-                    request.predicate = NSPredicate(format: "entityID == %@ AND isDeleted == NO", id as CVarArg)
+                    request.predicate = NSPredicate(format: "entityID == %@ AND deletedFlag == NO", id as CVarArg)
                     request.fetchLimit = 1
                     
                     let histories = try self.context.fetch(request)
@@ -126,7 +126,7 @@ class CoreDataComparisonHistoryRepository: ComparisonHistoryRepositoryProtocol {
             context.perform {
                 do {
                     // ソフトデリート
-                    history.setValue(true, forKey: "isDeleted")
+                    history.setValue(true, forKey: "deletedFlag")
                     try self.context.save()
                     continuation.resume()
                 } catch {
@@ -160,7 +160,7 @@ class CoreDataComparisonHistoryRepository: ComparisonHistoryRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ComparisonHistory>(entityName: "ComparisonHistory")
-                    request.predicate = NSPredicate(format: "comparisonType == %@ AND isDeleted == NO", type)
+                    request.predicate = NSPredicate(format: "comparisonType == %@ AND deletedFlag == NO", type)
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ComparisonHistory.createdAt, ascending: false)
                     ]
@@ -179,7 +179,7 @@ class CoreDataComparisonHistoryRepository: ComparisonHistoryRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ComparisonHistory>(entityName: "ComparisonHistory")
-                    request.predicate = NSPredicate(format: "isDeleted == NO")
+                    request.predicate = NSPredicate(format: "deletedFlag == NO")
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ComparisonHistory.createdAt, ascending: false)
                     ]
@@ -200,7 +200,7 @@ class CoreDataComparisonHistoryRepository: ComparisonHistoryRepositoryProtocol {
                 do {
                     let request = NSFetchRequest<ComparisonHistory>(entityName: "ComparisonHistory")
                     request.predicate = NSPredicate(
-                        format: "createdAt >= %@ AND createdAt <= %@ AND isDeleted == NO",
+                        format: "createdAt >= %@ AND createdAt <= %@ AND deletedFlag == NO",
                         startDate as NSDate, endDate as NSDate
                     )
                     request.sortDescriptors = [
@@ -222,7 +222,7 @@ class CoreDataComparisonHistoryRepository: ComparisonHistoryRepositoryProtocol {
                 do {
                     let request = NSFetchRequest<ComparisonHistory>(entityName: "ComparisonHistory")
                     request.predicate = NSPredicate(
-                        format: "(productAName CONTAINS[cd] %@ OR productBName CONTAINS[cd] %@) AND isDeleted == NO",
+                        format: "(productAName CONTAINS[cd] %@ OR productBName CONTAINS[cd] %@) AND deletedFlag == NO",
                         productName, productName
                     )
                     request.sortDescriptors = [
@@ -246,7 +246,7 @@ class CoreDataComparisonHistoryRepository: ComparisonHistoryRepositoryProtocol {
                 do {
                     // 商品Aと商品Bの名前を集計するための複雑なクエリ
                     let request = NSFetchRequest<NSFetchRequestResult>(entityName: "ComparisonHistory")
-                    request.predicate = NSPredicate(format: "isDeleted == NO")
+                    request.predicate = NSPredicate(format: "deletedFlag == NO")
                     request.resultType = .dictionaryResultType
                     
                     // 商品A名での集計
@@ -294,7 +294,7 @@ class CoreDataComparisonHistoryRepository: ComparisonHistoryRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<NSFetchRequestResult>(entityName: "ComparisonHistory")
-                    request.predicate = NSPredicate(format: "isDeleted == NO")
+                    request.predicate = NSPredicate(format: "deletedFlag == NO")
                     request.resultType = .dictionaryResultType
                     
                     let countExpression = NSExpression(forFunction: "count:", arguments: [NSExpression(forKeyPath: "entityID")])
@@ -416,7 +416,7 @@ extension CoreDataComparisonHistoryRepository {
             context.perform {
                 do {
                     let request = NSFetchRequest<NSFetchRequestResult>(entityName: "ComparisonHistory")
-                    request.predicate = NSPredicate(format: "isDeleted == NO")
+                    request.predicate = NSPredicate(format: "deletedFlag == NO")
                     request.resultType = .dictionaryResultType
                     
                     let typeExpression = NSExpression(forKeyPath: "comparisonType")

@@ -50,7 +50,7 @@ class CoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
                     record.setValue(Date(), forKey: "purchaseDate")
                     record.setValue("", forKey: "memo")
                     record.setValue(origin ?? "domestic", forKey: "origin")
-                    record.setValue(false, forKey: "isDeleted")
+                    record.setValue(false, forKey: "deletedFlag")
                     record.setValue(Date(), forKey: "createdAt")
                     record.setValue(Date(), forKey: "updatedAt")
                     
@@ -88,7 +88,7 @@ class CoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ProductRecord>(entityName: "ProductRecord")
-                    request.predicate = NSPredicate(format: "isDeleted == NO")
+                    request.predicate = NSPredicate(format: "deletedFlag == NO")
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ProductRecord.createdAt, ascending: false)
                     ]
@@ -107,7 +107,7 @@ class CoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ProductRecord>(entityName: "ProductRecord")
-                    request.predicate = NSPredicate(format: "entityID == %@ AND isDeleted == NO", id as CVarArg)
+                    request.predicate = NSPredicate(format: "entityID == %@ AND deletedFlag == NO", id as CVarArg)
                     request.fetchLimit = 1
                     
                     let records = try self.context.fetch(request)
@@ -150,7 +150,7 @@ class CoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
             context.perform {
                 do {
                     // ソフトデリート
-                    record.setValue(true, forKey: "isDeleted")
+                    record.setValue(true, forKey: "deletedFlag")
                     record.setValue(Date(), forKey: "updatedAt")
                     try self.context.save()
                     continuation.resume()
@@ -185,7 +185,7 @@ class CoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ProductRecord>(entityName: "ProductRecord")
-                    request.predicate = NSPredicate(format: "productGroup == %@ AND isDeleted == NO", group)
+                    request.predicate = NSPredicate(format: "productGroup == %@ AND deletedFlag == NO", group)
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ProductRecord.unitPrice, ascending: true),
                         NSSortDescriptor(keyPath: \ProductRecord.createdAt, ascending: false)
@@ -205,7 +205,7 @@ class CoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ProductRecord>(entityName: "ProductRecord")
-                    request.predicate = NSPredicate(format: "category == %@ AND isDeleted == NO", category)
+                    request.predicate = NSPredicate(format: "category == %@ AND deletedFlag == NO", category)
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ProductRecord.createdAt, ascending: false)
                     ]
@@ -224,7 +224,7 @@ class CoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ProductRecord>(entityName: "ProductRecord")
-                    request.predicate = NSPredicate(format: "storeName CONTAINS[cd] %@ AND isDeleted == NO", storeName)
+                    request.predicate = NSPredicate(format: "storeName CONTAINS[cd] %@ AND deletedFlag == NO", storeName)
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ProductRecord.createdAt, ascending: false)
                     ]
@@ -244,7 +244,7 @@ class CoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
                 do {
                     let request = NSFetchRequest<ProductRecord>(entityName: "ProductRecord")
                     request.predicate = NSPredicate(
-                        format: "unitPrice >= %@ AND unitPrice <= %@ AND isDeleted == NO",
+                        format: "unitPrice >= %@ AND unitPrice <= %@ AND deletedFlag == NO",
                         min as NSDecimalNumber, max as NSDecimalNumber
                     )
                     request.sortDescriptors = [
@@ -266,7 +266,7 @@ class CoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
                 do {
                     let request = NSFetchRequest<ProductRecord>(entityName: "ProductRecord")
                     request.predicate = NSPredicate(
-                        format: "createdAt >= %@ AND createdAt <= %@ AND isDeleted == NO",
+                        format: "createdAt >= %@ AND createdAt <= %@ AND deletedFlag == NO",
                         startDate as NSDate, endDate as NSDate
                     )
                     request.sortDescriptors = [
@@ -290,7 +290,7 @@ class CoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
                 do {
                     let request = NSFetchRequest<ProductRecord>(entityName: "ProductRecord")
                     request.predicate = NSPredicate(
-                        format: "(productName CONTAINS[cd] %@ OR storeName CONTAINS[cd] %@ OR memo CONTAINS[cd] %@) AND isDeleted == NO",
+                        format: "(productName CONTAINS[cd] %@ OR storeName CONTAINS[cd] %@ OR memo CONTAINS[cd] %@) AND deletedFlag == NO",
                         keyword, keyword, keyword
                     )
                     request.sortDescriptors = [
@@ -311,7 +311,7 @@ class CoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ProductRecord>(entityName: "ProductRecord")
-                    request.predicate = NSPredicate(format: "isDeleted == NO")
+                    request.predicate = NSPredicate(format: "deletedFlag == NO")
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ProductRecord.createdAt, ascending: false)
                     ]
@@ -331,7 +331,7 @@ class CoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ProductRecord>(entityName: "ProductRecord")
-                    request.predicate = NSPredicate(format: "isDeleted == NO AND unitPrice > 0")
+                    request.predicate = NSPredicate(format: "deletedFlag == NO AND unitPrice > 0")
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ProductRecord.unitPrice, ascending: true)
                     ]
@@ -396,7 +396,7 @@ extension CoreDataProductRecordRepository {
                 do {
                     let request = NSFetchRequest<ProductRecord>(entityName: "ProductRecord")
                     request.predicate = NSPredicate(
-                        format: "productName CONTAINS[cd] %@ AND isDeleted == NO AND unitPrice > 0",
+                        format: "productName CONTAINS[cd] %@ AND deletedFlag == NO AND unitPrice > 0",
                         productName
                     )
                     request.sortDescriptors = [
@@ -419,7 +419,7 @@ extension CoreDataProductRecordRepository {
             context.perform {
                 do {
                     let request = NSFetchRequest<NSFetchRequestResult>(entityName: "ProductRecord")
-                    request.predicate = NSPredicate(format: "isDeleted == NO AND storeName != ''")
+                    request.predicate = NSPredicate(format: "deletedFlag == NO AND storeName != ''")
                     request.resultType = .dictionaryResultType
                     
                     let storeNameExpression = NSExpression(forKeyPath: "storeName")

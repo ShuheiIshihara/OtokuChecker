@@ -19,6 +19,9 @@ struct ContentView: View {
     @State private var errorMessage: String?
     @State private var showingErrorAlert = false
     @State private var hasHistorySelection = false
+    @State private var showingDataEntry = false
+    @State private var selectedProductForSave: Product?
+    @StateObject private var dataEntryViewModel = DataEntryViewModel()
     
     private let comparisonService = ComparisonService()
     
@@ -110,6 +113,12 @@ struct ContentView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .navigationViewStyle(StackNavigationViewStyle())
+        .sheet(isPresented: $showingDataEntry, onDismiss: {
+            selectedProductForSave = nil
+            dataEntryViewModel.resetForm()
+        }) {
+            DataEntryView(viewModel: dataEntryViewModel)
+        }
         .alert("比較エラー", isPresented: $showingErrorAlert) {
             Button("確認") {
                 comparisonResult = nil
@@ -353,7 +362,9 @@ struct ContentView: View {
         let backgroundColor = isWinner ? saveButtonGradient : AnyView(Color.gray.opacity(0.2))
         
         return Button(action: {
-            // TODO: 商品A保存機能を実装
+            dataEntryViewModel.populateFromProduct(result.productA)
+            selectedProductForSave = result.productA
+            showingDataEntry = true
         }) {
             HStack {
                 Image(systemName: "square.and.arrow.down")
@@ -387,7 +398,9 @@ struct ContentView: View {
         let backgroundColor = isWinner ? saveButtonGradient : AnyView(Color.gray.opacity(0.2))
         
         return Button(action: {
-            // TODO: 商品B保存機能を実装
+            dataEntryViewModel.populateFromProduct(result.productB)
+            selectedProductForSave = result.productB
+            showingDataEntry = true
         }) {
             HStack {
                 Image(systemName: "square.and.arrow.down")

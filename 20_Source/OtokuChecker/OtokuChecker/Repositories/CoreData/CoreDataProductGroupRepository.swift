@@ -40,7 +40,7 @@ class CoreDataProductGroupRepository: ProductGroupRepositoryProtocol {
                     group.setValue(0, forKey: "lowestUnitPrice")
                     group.setValue("", forKey: "lowestPriceStoreName")
                     group.setValue(nil, forKey: "lastRecordDate")
-                    group.setValue(false, forKey: "isDeleted")
+                    group.setValue(false, forKey: "deletedFlag")
                     group.setValue(Date(), forKey: "createdAt")
                     group.setValue(Date(), forKey: "updatedAt")
                     
@@ -63,7 +63,7 @@ class CoreDataProductGroupRepository: ProductGroupRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ProductGroup>(entityName: "ProductGroup")
-                    request.predicate = NSPredicate(format: "isDeleted == NO")
+                    request.predicate = NSPredicate(format: "deletedFlag == NO")
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ProductGroup.lastRecordDate, ascending: false),
                         NSSortDescriptor(keyPath: \ProductGroup.productName, ascending: true)
@@ -83,7 +83,7 @@ class CoreDataProductGroupRepository: ProductGroupRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ProductGroup>(entityName: "ProductGroup")
-                    request.predicate = NSPredicate(format: "entityID == %@ AND isDeleted == NO", id as CVarArg)
+                    request.predicate = NSPredicate(format: "entityID == %@ AND deletedFlag == NO", id as CVarArg)
                     request.fetchLimit = 1
                     
                     let groups = try self.context.fetch(request)
@@ -114,13 +114,13 @@ class CoreDataProductGroupRepository: ProductGroupRepositoryProtocol {
             context.perform {
                 do {
                     // ソフトデリート
-                    group.setValue(true, forKey: "isDeleted")
+                    group.setValue(true, forKey: "deletedFlag")
                     group.setValue(Date(), forKey: "updatedAt")
                     
                     // 関連するProductRecordもソフトデリート
                     if let records = group.value(forKey: "records") as? Set<ProductRecord> {
                         for record in records {
-                            record.setValue(true, forKey: "isDeleted")
+                            record.setValue(true, forKey: "deletedFlag")
                             record.setValue(Date(), forKey: "updatedAt")
                         }
                     }
@@ -158,7 +158,7 @@ class CoreDataProductGroupRepository: ProductGroupRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ProductGroup>(entityName: "ProductGroup")
-                    request.predicate = NSPredicate(format: "category == %@ AND isDeleted == NO", category)
+                    request.predicate = NSPredicate(format: "category == %@ AND deletedFlag == NO", category)
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ProductGroup.recordCount, ascending: false),
                         NSSortDescriptor(keyPath: \ProductGroup.productName, ascending: true)
@@ -178,7 +178,7 @@ class CoreDataProductGroupRepository: ProductGroupRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ProductGroup>(entityName: "ProductGroup")
-                    request.predicate = NSPredicate(format: "productName == %@ AND isDeleted == NO", name)
+                    request.predicate = NSPredicate(format: "productName == %@ AND deletedFlag == NO", name)
                     request.fetchLimit = 1
                     
                     let groups = try self.context.fetch(request)
@@ -196,7 +196,7 @@ class CoreDataProductGroupRepository: ProductGroupRepositoryProtocol {
                 do {
                     let request = NSFetchRequest<ProductGroup>(entityName: "ProductGroup")
                     request.predicate = NSPredicate(
-                        format: "(productName CONTAINS[cd] %@ OR normalizedName CONTAINS[cd] %@) AND isDeleted == NO",
+                        format: "(productName CONTAINS[cd] %@ OR normalizedName CONTAINS[cd] %@) AND deletedFlag == NO",
                         keyword, keyword
                     )
                     request.sortDescriptors = [
@@ -218,7 +218,7 @@ class CoreDataProductGroupRepository: ProductGroupRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ProductGroup>(entityName: "ProductGroup")
-                    request.predicate = NSPredicate(format: "normalizedName BEGINSWITH[cd] %@ AND isDeleted == NO", normalizedName)
+                    request.predicate = NSPredicate(format: "normalizedName BEGINSWITH[cd] %@ AND deletedFlag == NO", normalizedName)
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ProductGroup.recordCount, ascending: false)
                     ]
@@ -240,7 +240,7 @@ class CoreDataProductGroupRepository: ProductGroupRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ProductGroup>(entityName: "ProductGroup")
-                    request.predicate = NSPredicate(format: "isDeleted == NO AND recordCount > 0")
+                    request.predicate = NSPredicate(format: "deletedFlag == NO AND recordCount > 0")
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ProductGroup.recordCount, ascending: false),
                         NSSortDescriptor(keyPath: \ProductGroup.lastRecordDate, ascending: false)
@@ -261,7 +261,7 @@ class CoreDataProductGroupRepository: ProductGroupRepositoryProtocol {
             context.perform {
                 do {
                     let request = NSFetchRequest<ProductGroup>(entityName: "ProductGroup")
-                    request.predicate = NSPredicate(format: "isDeleted == NO AND lastRecordDate != nil")
+                    request.predicate = NSPredicate(format: "deletedFlag == NO AND lastRecordDate != nil")
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ProductGroup.lastRecordDate, ascending: false)
                     ]
@@ -282,7 +282,7 @@ class CoreDataProductGroupRepository: ProductGroupRepositoryProtocol {
                 do {
                     // 関連するProductRecordsを取得
                     let request = NSFetchRequest<ProductRecord>(entityName: "ProductRecord")
-                    request.predicate = NSPredicate(format: "productGroup == %@ AND isDeleted == NO", group)
+                    request.predicate = NSPredicate(format: "productGroup == %@ AND deletedFlag == NO", group)
                     request.sortDescriptors = [
                         NSSortDescriptor(keyPath: \ProductRecord.unitPrice, ascending: true)
                     ]

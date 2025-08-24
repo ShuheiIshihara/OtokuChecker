@@ -6,7 +6,19 @@ typealias OriginType = DataEntryViewModel.OriginType
 
 struct DataEntryView: View {
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var viewModel = DataEntryViewModel()
+    @ObservedObject var viewModel: DataEntryViewModel
+    
+    init(viewModel: DataEntryViewModel) {
+        self.viewModel = viewModel
+    }
+    
+    // 後方互換性のためのinit
+    init(initialProduct: Product? = nil) {
+        self.viewModel = DataEntryViewModel()
+        if let product = initialProduct {
+            self.viewModel.populateFromProduct(product)
+        }
+    }
     
     var body: some View {
         NavigationView {
@@ -639,5 +651,12 @@ struct RegisterButton: View {
 
 
 #Preview {
-    DataEntryView()
+    DataEntryView(viewModel: DataEntryViewModel())
+}
+
+#Preview("With Initial Product") {
+    let viewModel = DataEntryViewModel()
+    let sampleProduct = Product(name: "サンプル商品", price: 100, quantity: 500, unit: .gram)
+    viewModel.populateFromProduct(sampleProduct)
+    return DataEntryView(viewModel: viewModel)
 }

@@ -61,7 +61,7 @@ class ImprovedCoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
             record.setValue(Date(), forKey: "purchaseDate")
             record.setValue("", forKey: "memo")
             record.setValue(origin ?? "domestic", forKey: "origin")
-            record.setValue(false, forKey: "isDeleted")
+            record.setValue(false, forKey: "deletedFlag")
             record.setValue(Date(), forKey: "createdAt")
             record.setValue(Date(), forKey: "updatedAt")
             
@@ -105,7 +105,7 @@ class ImprovedCoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
     
     func fetchAll() async throws -> [ProductRecord] {
         let request = NSFetchRequest<ProductRecord>(entityName: entityName)
-        request.predicate = NSPredicate(format: "isDeleted == NO")
+        request.predicate = NSPredicate(format: "deletedFlag == NO")
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \ProductRecord.createdAt, ascending: false)
         ]
@@ -121,7 +121,7 @@ class ImprovedCoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
     
     func fetchById(_ id: UUID) async throws -> ProductRecord? {
         let request = NSFetchRequest<ProductRecord>(entityName: entityName)
-        request.predicate = NSPredicate(format: "entityID == %@ AND isDeleted == NO", id as CVarArg)
+        request.predicate = NSPredicate(format: "entityID == %@ AND deletedFlag == NO", id as CVarArg)
         request.fetchLimit = 1
         
         let records = try await safeFetch(request)
@@ -159,7 +159,7 @@ class ImprovedCoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
     func delete(_ record: ProductRecord) async throws {
         try await context.performWithErrorHandling {
             // ソフトデリート
-            record.setValue(true, forKey: "isDeleted")
+            record.setValue(true, forKey: "deletedFlag")
             record.setValue(Date(), forKey: "updatedAt")
             
             // 関連データの整合性チェック
@@ -182,7 +182,7 @@ class ImprovedCoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
     
     func fetchByProductGroup(_ group: ProductGroup) async throws -> [ProductRecord] {
         let request = NSFetchRequest<ProductRecord>(entityName: entityName)
-        request.predicate = NSPredicate(format: "productGroup == %@ AND isDeleted == NO", group as CVarArg)
+        request.predicate = NSPredicate(format: "productGroup == %@ AND deletedFlag == NO", group as CVarArg)
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \ProductRecord.unitPrice, ascending: true),
             NSSortDescriptor(keyPath: \ProductRecord.createdAt, ascending: false)
@@ -197,7 +197,7 @@ class ImprovedCoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
     
     func fetchByCategory(_ category: ProductCategory) async throws -> [ProductRecord] {
         let request = NSFetchRequest<ProductRecord>(entityName: entityName)
-        request.predicate = NSPredicate(format: "category == %@ AND isDeleted == NO", category as CVarArg)
+        request.predicate = NSPredicate(format: "category == %@ AND deletedFlag == NO", category as CVarArg)
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \ProductRecord.createdAt, ascending: false)
         ]
@@ -215,7 +215,7 @@ class ImprovedCoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
         
         let request = NSFetchRequest<ProductRecord>(entityName: entityName)
         request.predicate = NSPredicate(
-            format: "storeName CONTAINS[cd] %@ AND isDeleted == NO", 
+            format: "storeName CONTAINS[cd] %@ AND deletedFlag == NO", 
             normalizedStoreName
         )
         request.sortDescriptors = [
@@ -240,7 +240,7 @@ class ImprovedCoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
         
         let request = NSFetchRequest<ProductRecord>(entityName: entityName)
         request.predicate = NSPredicate(
-            format: "unitPrice >= %@ AND unitPrice <= %@ AND isDeleted == NO",
+            format: "unitPrice >= %@ AND unitPrice <= %@ AND deletedFlag == NO",
             min as NSDecimalNumber, max as NSDecimalNumber
         )
         request.sortDescriptors = [
@@ -265,7 +265,7 @@ class ImprovedCoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
         
         let request = NSFetchRequest<ProductRecord>(entityName: entityName)
         request.predicate = NSPredicate(
-            format: "createdAt >= %@ AND createdAt <= %@ AND isDeleted == NO",
+            format: "createdAt >= %@ AND createdAt <= %@ AND deletedFlag == NO",
             startDate as NSDate, endDate as NSDate
         )
         request.sortDescriptors = [
@@ -287,7 +287,7 @@ class ImprovedCoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
         
         let request = NSFetchRequest<ProductRecord>(entityName: entityName)
         request.predicate = NSPredicate(
-            format: "(productName CONTAINS[cd] %@ OR storeName CONTAINS[cd] %@ OR memo CONTAINS[cd] %@) AND isDeleted == NO",
+            format: "(productName CONTAINS[cd] %@ OR storeName CONTAINS[cd] %@ OR memo CONTAINS[cd] %@) AND deletedFlag == NO",
             normalizedKeyword, normalizedKeyword, normalizedKeyword
         )
         request.sortDescriptors = [
@@ -306,7 +306,7 @@ class ImprovedCoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
         let safeLimit = min(max(limit, 1), 1000) // 1-1000の範囲
         
         let request = NSFetchRequest<ProductRecord>(entityName: entityName)
-        request.predicate = NSPredicate(format: "isDeleted == NO")
+        request.predicate = NSPredicate(format: "deletedFlag == NO")
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \ProductRecord.createdAt, ascending: false)
         ]
@@ -322,7 +322,7 @@ class ImprovedCoreDataProductRecordRepository: ProductRecordRepositoryProtocol {
         let safeLimit = min(max(limit, 1), 1000)
         
         let request = NSFetchRequest<ProductRecord>(entityName: entityName)
-        request.predicate = NSPredicate(format: "isDeleted == NO AND unitPrice > 0")
+        request.predicate = NSPredicate(format: "deletedFlag == NO AND unitPrice > 0")
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \ProductRecord.unitPrice, ascending: true)
         ]

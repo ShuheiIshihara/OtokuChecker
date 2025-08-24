@@ -97,8 +97,10 @@ class DataEntryViewModel: BaseFormViewModel {
         
         let unitPriceValue = finalPrice / quantityValue
         let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
+        formatter.numberStyle = .decimal // 表示時は3桁区切りを使用
+        formatter.maximumFractionDigits = 2
+        formatter.minimumFractionDigits = 0
+        formatter.usesGroupingSeparator = true
         
         let formattedPrice = formatter.string(from: NSDecimalNumber(decimal: unitPriceValue)) ?? "0"
         return "\(formattedPrice) 円 /\(selectedUnit)"
@@ -139,6 +141,7 @@ class DataEntryViewModel: BaseFormViewModel {
         )
     }
     
+    
     init(
         productManagementUseCase: any ProductManagementUseCaseProtocol,
         categoryManagementUseCase: any CategoryManagementUseCaseProtocol
@@ -151,6 +154,44 @@ class DataEntryViewModel: BaseFormViewModel {
         setupValidation()
         setupAutoComplete()
         loadCategories()
+    }
+    
+    // MARK: - Public Methods - Data Population
+    
+    func populateFromProduct(_ product: Product) {
+        // 商品名の引き継ぎ
+        productName = product.name
+        
+        // 価格の引き継ぎ（カンマなしで数値のみ）
+        let priceFormatter = NumberFormatter()
+        priceFormatter.numberStyle = .none // カンマなしの数値のみ
+        priceFormatter.maximumFractionDigits = 2
+        priceFormatter.minimumFractionDigits = 0
+        priceFormatter.usesGroupingSeparator = false // 3桁区切りカンマを無効化
+        price = priceFormatter.string(from: NSDecimalNumber(decimal: product.price)) ?? "0"
+        
+        // 数量（容量）の引き継ぎ
+        let quantityFormatter = NumberFormatter()
+        quantityFormatter.numberStyle = .none // カンマなしの数値のみ
+        quantityFormatter.maximumFractionDigits = 3
+        quantityFormatter.minimumFractionDigits = 0
+        quantityFormatter.usesGroupingSeparator = false // 3桁区切りカンマを無効化
+        quantity = quantityFormatter.string(from: NSDecimalNumber(decimal: product.quantity)) ?? "0"
+        
+        // 単位の引き継ぎ
+        unit = product.unit
+        selectedUnit = product.unit.rawValue
+        
+        // 税込みかどうかの判定（デフォルトで税込みとして扱う）
+        taxType = .inclusive
+        taxRate = "10"
+        
+        // 原産地はデフォルトで国産
+        origin = .domestic
+        
+        
+        markAsDirty()
+        validateForm()
     }
     
     // MARK: - Public Methods - Form Management
