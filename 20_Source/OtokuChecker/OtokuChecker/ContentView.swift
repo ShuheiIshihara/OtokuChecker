@@ -42,27 +42,56 @@ struct ContentView: View {
                         // ヘッダー部分
                         headerView
                         
-                        // 商品A入力エリア
-                        ProductInputCard(
-                            title: "商品A",
-                            icon: "🏪",
-                            product: $productA,
-                            backgroundColor: Color.white,
-                            onHistoryTap: {
-                                // TODO: 履歴参照機能を実装
+                        // 商品入力エリア - レスポンシブレイアウト
+                        if isLandscape {
+                            // 横向き: 商品AとBを並列表示
+                            HStack(spacing: 16) {
+                                ProductInputCard(
+                                    title: "商品A",
+                                    icon: "🏪",
+                                    product: $productA,
+                                    backgroundColor: Color.white,
+                                    onHistoryTap: {
+                                        // TODO: 履歴参照機能を実装
+                                    }
+                                )
+                                .frame(maxWidth: .infinity)
+                                
+                                ProductInputCard(
+                                    title: "商品B",
+                                    icon: "🛒",
+                                    product: $productB,
+                                    backgroundColor: Color.white,
+                                    onHistoryTap: {
+                                        // TODO: 履歴参照機能を実装
+                                    }
+                                )
+                                .frame(maxWidth: .infinity)
                             }
-                        )
-                        
-                        // 商品B入力エリア
-                        ProductInputCard(
-                            title: "商品B",
-                            icon: "🛒",
-                            product: $productB,
-                            backgroundColor: Color.white,
-                            onHistoryTap: {
-                                // TODO: 履歴参照機能を実装
+                        } else {
+                            // 縦向き: 商品AとBを縦並び表示
+                            VStack(spacing: 20) {
+                                ProductInputCard(
+                                    title: "商品A",
+                                    icon: "🏪",
+                                    product: $productA,
+                                    backgroundColor: Color.white,
+                                    onHistoryTap: {
+                                        // TODO: 履歴参照機能を実装
+                                    }
+                                )
+                                
+                                ProductInputCard(
+                                    title: "商品B",
+                                    icon: "🛒",
+                                    product: $productB,
+                                    backgroundColor: Color.white,
+                                    onHistoryTap: {
+                                        // TODO: 履歴参照機能を実装
+                                    }
+                                )
                             }
-                        )
+                        }
                         
                         // 比較ボタン
                         comparisonButton
