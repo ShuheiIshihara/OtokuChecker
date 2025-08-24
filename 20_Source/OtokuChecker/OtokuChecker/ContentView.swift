@@ -18,6 +18,7 @@ struct ContentView: View {
     @State private var comparisonResult: ComparisonResult?
     @State private var errorMessage: String?
     @State private var showingErrorAlert = false
+    @State private var hasHistorySelection = false
     
     private let comparisonService = ComparisonService()
     
@@ -49,25 +50,39 @@ struct ContentView: View {
                         Button(action: {
                             // TODO: 履歴画面への遷移
                         }) {
-                            Image(systemName: "chart.bar")
+                            Image(systemName: "list.clipboard")
+                                .foregroundColor(AppColors.primary)
                         }
+                        .accessibilityLabel("履歴")
+                        .accessibilityHint("過去の比較履歴を確認します")
                     }
                     
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button(action: {
                             // TODO: 設定画面への遷移
                         }) {
-                            Image(systemName: "gearshape")
+                            Image(systemName: "gear")
+                                .foregroundColor(AppColors.primary)
                         }
+                        .accessibilityLabel("設定")
+                        .accessibilityHint("アプリの設定を変更します")
                     }
                 }
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
-        .alert("エラー", isPresented: $showingErrorAlert) {
-            Button("OK") { }
+        .alert("比較エラー", isPresented: $showingErrorAlert) {
+            Button("確認") {
+                // エラークリア時に結果をリセット
+                comparisonResult = nil
+            }
         } message: {
-            Text(errorMessage ?? "")
+            VStack(alignment: .leading, spacing: 8) {
+                Text(errorMessage ?? "予期しないエラーが発生しました")
+                Text("商品情報を確認して、再度お試しください。")
+                    .font(.caption)
+                    .foregroundColor(AppColors.secondaryText)
+            }
         }
     }
     
@@ -209,7 +224,35 @@ struct ContentView: View {
         return validation.canCompare
     }
     
+    /// エラーメッセージをユーザーフレンドリーに変換
+    private func convertToUserFriendlyMessage(_ error: String) -> String {
+        if error.contains("unit") || error.contains("単位") {
+            return "商品の単位が比較できません。同じ種類の単位（重さ、容量など）で入力してください。"
+        } else if error.contains("price") || error.contains("価格") {
+            return "価格が正しく入力されていません。数字で入力してください。"
+        } else if error.contains("quantity") || error.contains("数量") {
+            return "数量が正しく入力されていません。0より大きい数字で入力してください。"
+        } else if error.contains("name") || error.contains("商品名") {
+            return "商品名が入力されていません。比較する商品の名前を入力してください。"
+        } else {
+            return "入力内容を確認してください。すべての項目を正しく入力する必要があります。"
+        }
+    }
+    
+    /// 履歴から選択された商品があるかチェック
+    private func checkForHistorySelection() -> Bool {
+        // ProductInputView内の履歴選択状態は、ここでは直接取得できないため、
+        // 商品名が設定されているかで判断（簡易実装）
+        return !productA.name.isEmpty || !productB.name.isEmpty
+    }
+    
     private func performComparison() {
+        // 結果をクリアしてから比較開始
+        comparisonResult = nil
+        
+        // 履歴選択の状態を更新
+        hasHistorySelection = checkForHistorySelection()
+        
         let comparisonProductA = ComparisonProduct(
             name: productA.name,
             price: productA.price,
@@ -230,7 +273,9 @@ struct ContentView: View {
         let validation = comparisonService.canCompareProducts(comparisonProductA, comparisonProductB)
         
         guard validation.canCompare else {
-            errorMessage = validation.reason
+            // ユーザーフレンドリーなエラーメッセージに変換
+            errorMessage = convertToUserFriendlyMessage(validation.reason ?? "比較できません")
+            comparisonResult = nil
             showingErrorAlert = true
             return
         }
@@ -253,8 +298,14 @@ struct ContentView: View {
                 priceDifference: result.comparisonDetails.priceDifference,
                 percentageDifference: result.comparisonDetails.percentageDifference
             )
+            
+            // 正常な比較が完了した場合、エラー状態をクリア
+            if showingErrorAlert {
+                showingErrorAlert = false
+            }
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = convertToUserFriendlyMessage(error.localizedDescription)
+            comparisonResult = nil
             showingErrorAlert = true
         }
     }

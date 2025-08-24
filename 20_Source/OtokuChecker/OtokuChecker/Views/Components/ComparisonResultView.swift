@@ -101,20 +101,73 @@ struct ComparisonResultView: View {
                 )
                 .cornerRadius(12)
             } else {
-                // 比較前の表示
-                VStack(spacing: 8) {
-                    Image(systemName: "arrow.up.arrow.down")
-                        .font(.title)
-                        .foregroundColor(AppColors.secondaryText)
+                // 比較前の表示（初回利用者向けガイダンス）
+                VStack(spacing: 16) {
+                    Image(systemName: "arrow.up.arrow.down.circle")
+                        .font(.system(size: 48))
+                        .foregroundColor(AppColors.primary)
+                        .padding(.bottom, 8)
                     
-                    Text("商品情報を入力して比較ボタンを押してください")
-                        .font(.subheadline)
-                        .foregroundColor(AppColors.secondaryText)
+                    Text("🛍️ お得な商品を見つけよう！")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(AppColors.primaryText)
                         .multilineTextAlignment(.center)
+                    
+                    VStack(spacing: 8) {
+                        HStack {
+                            Text("①")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .frame(width: 20, height: 20)
+                                .background(AppColors.primary)
+                                .clipShape(Circle())
+                            Text("商品Aと商品Bの情報を入力")
+                                .font(.subheadline)
+                                .foregroundColor(AppColors.secondaryText)
+                            Spacer()
+                        }
+                        
+                        HStack {
+                            Text("②")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .frame(width: 20, height: 20)
+                                .background(AppColors.primary)
+                                .clipShape(Circle())
+                            Text("「💡 比較する」ボタンをタップ")
+                                .font(.subheadline)
+                                .foregroundColor(AppColors.secondaryText)
+                            Spacer()
+                        }
+                        
+                        HStack {
+                            Text("③")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .frame(width: 20, height: 20)
+                                .background(AppColors.primary)
+                                .clipShape(Circle())
+                            Text("お得な商品がすぐわかる！")
+                                .font(.subheadline)
+                                .foregroundColor(AppColors.secondaryText)
+                            Spacer()
+                        }
+                    }
+                    .padding(.top, 8)
                 }
-                .padding(32)
+                .padding(24)
                 .frame(maxWidth: .infinity)
-                .background(AppColors.cardBackground)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [AppColors.cardBackground, AppColors.lightBackground]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
                 .cornerRadius(12)
             }
         }

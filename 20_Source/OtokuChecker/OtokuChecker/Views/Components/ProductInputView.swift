@@ -15,6 +15,8 @@ struct ProductInputView: View {
     
     @State private var priceText: String = ""
     @State private var quantityText: String = ""
+    @State private var showingHistorySelection = false
+    @State private var selectedHistoryProduct: HistoryProduct? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -25,11 +27,15 @@ struct ProductInputView: View {
                 
                 Spacer()
                 
-                Button(action: onHistoryTap) {
+                Button(action: {
+                    showingHistorySelection = true
+                }) {
                     Image(systemName: "doc.on.clipboard")
                         .font(.title2)
                         .foregroundColor(AppColors.primary)
                 }
+                .accessibilityLabel("履歴参照")
+                .accessibilityHint("過去の商品記録から選択します")
             }
             
             // 入力フィールド
@@ -85,6 +91,32 @@ struct ProductInputView: View {
                 }
             }
             .cardStyle()
+            
+            // 履歴から選択された商品の表示
+            if let historyProduct = selectedHistoryProduct {
+                HStack {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.caption)
+                        .foregroundColor(AppColors.info)
+                    
+                    Text("履歴から選択: \(historyProduct.storeName) (\(formattedDate(historyProduct.recordDate)))")
+                        .font(.caption)
+                        .foregroundColor(AppColors.secondaryText)
+                    
+                    Spacer()
+                    
+                    Button("クリア") {
+                        selectedHistoryProduct = nil
+                        clearProduct()
+                    }
+                    .font(.caption)
+                    .foregroundColor(AppColors.primary)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(AppColors.info.opacity(0.1))
+                .cornerRadius(6)
+            }
         }
         .onAppear {
             initializeTextFields()
@@ -94,6 +126,12 @@ struct ProductInputView: View {
         }
         .onChange(of: product.quantity) { _ in
             updateQuantityText()
+        }
+        .sheet(isPresented: $showingHistorySelection) {
+            HistorySelectionView { historyProduct in
+                selectedHistoryProduct = historyProduct
+                applyHistoryProduct(historyProduct)
+            }
         }
     }
     
@@ -128,6 +166,36 @@ struct ProductInputView: View {
         } else if text.isEmpty {
             product.quantity = 0
         }
+    }
+    
+    /// 履歴から選択された商品を現在の商品に適用
+    private func applyHistoryProduct(_ historyProduct: HistoryProduct) {
+        product.name = historyProduct.productName
+        product.price = historyProduct.price
+        product.quantity = historyProduct.quantity
+        product.unit = historyProduct.unit
+        
+        // テキストフィールドも更新
+        updatePriceText()
+        updateQuantityText()
+    }
+    
+    /// 商品情報をクリア
+    private func clearProduct() {
+        product.name = ""
+        product.price = 0
+        product.quantity = 0
+        product.unit = .gram
+        priceText = ""
+        quantityText = ""
+    }
+    
+    /// 日付をフォーマット
+    private func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.locale = Locale(identifier: "ja_JP")
+        return formatter.string(from: date)
     }
 }
 
